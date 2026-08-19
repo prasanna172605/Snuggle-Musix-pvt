@@ -71,8 +71,6 @@ Unlike generic music clients, **Snuggle Musix** bridges high-fidelity online str
 
 ## ⚡ The Snuggle Musix Core Pillars
 
-### 🧠 Snuggle Brain
-An intelligent, on-device queuing agent. It observes your playback transitions and listener momentum, procedurally generating and injecting songs that fit your immediate vibe. No tracking servers, no cloud profiling. Learn more in the [Snuggle Brain Documentation](SNUGGLE_BRAIN_DOCS.md).
 
 ### 🔍 Snuggle Find
 Heard a song playing in your room or on a TV show? Instantly identify tracks playing around you via microphone fingerprinting, pulling up synced lyrics or adding it to your Snuggle Musix queue on the spot.

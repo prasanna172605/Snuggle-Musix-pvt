@@ -42,7 +42,6 @@ import com.snuggle.music.db.entities.SpeedDialItem
 import com.snuggle.music.db.entities.SortedSongAlbumMap
 import com.snuggle.music.db.entities.SortedSongArtistMap
 import com.snuggle.music.db.entities.TasteProfileEntity
-import com.snuggle.music.db.daos.EchoBrainDao
 import com.snuggle.music.extensions.toSQLiteQuery
 import timber.log.Timber
 import java.time.Instant
@@ -56,8 +55,6 @@ class MusicDatabase(
     val speedDialDao: SpeedDialDao
         get() = delegate.speedDialDao
 
-    val echoBrainDao: EchoBrainDao
-        get() = delegate.echoBrainDao
 
     val openHelper: SupportSQLiteOpenHelper
         get() = delegate.openHelper
@@ -164,7 +161,6 @@ class MusicDatabase(
 abstract class InternalDatabase : RoomDatabase() {
     abstract val dao: DatabaseDao
     abstract val speedDialDao: SpeedDialDao
-    abstract val echoBrainDao: EchoBrainDao
 
     companion object {
         const val DB_NAME = "song.db"

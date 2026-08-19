@@ -178,7 +178,6 @@ import com.snuggle.music.viewmodels.DailyDiscoverItem
 sealed class HomeSection(val id: String, val baseWeight: Int) {
     data object SpeedDial : HomeSection("speed_dial", 100)
     data object QuickPicks : HomeSection("quick_picks", 90)
-    data object EchoBrainPlaylists : HomeSection("echo_brain_playlists", 85)
     data object DailyDiscover : HomeSection("daily_discover", 80)
     data object KeepListening : HomeSection("keep_listening", 50)
     data object AccountPlaylists : HomeSection("account_playlists", 40)
@@ -579,7 +578,6 @@ fun HomeScreen(
     val explorePage by viewModel.explorePage.collectAsState()
     val dailyDiscover by viewModel.dailyDiscover.collectAsState()
     val communityPlaylists by viewModel.communityPlaylists.collectAsState()
-    val echoBrainPlaylists by viewModel.echoBrainPlaylists.collectAsState()
 
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
@@ -1312,65 +1310,6 @@ fun HomeScreen(
                                                     overflow = TextOverflow.Ellipsis
                                                 )
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        HomeSection.EchoBrainPlaylists -> {
-                            echoBrainPlaylists?.takeIf { it.isNotEmpty() }?.let { playlists ->
-                                item(key = "echo_brain_playlists_title") {
-                                    NavigationTitle(
-                                        title = "Snuggle Brain Recommends",
-                                        modifier = Modifier.animateItem()
-                                    )
-                                }
-
-                                item(key = "echo_brain_playlists_content") {
-                                    LazyRow(
-                                        contentPadding = PaddingValues(horizontal = 16.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                        modifier = Modifier.animateItem()
-                                    ) {
-                                        items(playlists, key = { it.playlist.id }) { item ->
-                                            CommunityPlaylistCard(
-                                                item = item,
-                                                onClick = {
-                                                    if (item.playlist.id == "echo_brain_mix_local") {
-                                                        playerConnection.playQueue(
-                                                            ListQueue(
-                                                                title = item.playlist.title,
-                                                                items = item.songs.map { it.toMediaMetadata().toMediaItem() }
-                                                            )
-                                                        )
-                                                    } else {
-                                                        playerConnection.playQueue(
-                                                            YouTubeQueue(
-                                                                WatchEndpoint(videoId = item.playlist.id.removePrefix("RDAMVM"), playlistId = item.playlist.id)
-                                                            )
-                                                        )
-                                                    }
-                                                },
-                                                onSongClick = { song ->
-                                                    if (item.playlist.id == "echo_brain_mix_local") {
-                                                        val index = item.songs.indexOf(song).takeIf { it >= 0 } ?: 0
-                                                        playerConnection.playQueue(
-                                                            ListQueue(
-                                                                title = item.playlist.title,
-                                                                items = item.songs.map { it.toMediaMetadata().toMediaItem() },
-                                                                startIndex = index
-                                                            )
-                                                        )
-                                                    } else {
-                                                        playerConnection.playQueue(
-                                                            YouTubeQueue(
-                                                                song.endpoint ?: WatchEndpoint(videoId = song.id),
-                                                                song.toMediaMetadata()
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            )
                                         }
                                     }
                                 }

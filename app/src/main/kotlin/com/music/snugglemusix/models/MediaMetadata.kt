@@ -11,7 +11,7 @@ import com.snuggle.music.ui.utils.resize
 import java.io.Serializable
 import java.time.LocalDateTime
 
-enum class QueueItemSource { USER, ECHO_BRAIN }
+enum class QueueItemSource { USER }
 
 @Immutable
 data class MediaMetadata(

@@ -73,8 +73,7 @@ data class CommunityPlaylistItem(
 class HomeViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     val database: MusicDatabase,
-    val syncUtils: SyncUtils,
-    val echoBrainEngine: com.snuggle.music.engine.EchoBrainEngine
+    val syncUtils: SyncUtils
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
@@ -93,7 +92,6 @@ class HomeViewModel @Inject constructor(
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
     val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
-    val echoBrainPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
     val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
@@ -407,37 +405,6 @@ class HomeViewModel @Inject constructor(
         communityPlaylists.value = playlists.shuffled()
     }
 
-    private suspend fun getEchoBrainPlaylists() {
-        val brainMix = echoBrainEngine.generateBrainMix()
-        
-        if (brainMix.isNotEmpty()) {
-            val songs = brainMix.map { meta ->
-                SongItem(
-                    id = meta.id,
-                    title = meta.title,
-                    artists = meta.artists.map { Artist(name = it.name, id = it.id) },
-                    thumbnail = meta.thumbnailUrl ?: "",
-                    explicit = false
-                )
-            }
-            
-            val playlistItem = PlaylistItem(
-                id = "echo_brain_mix_local",
-                title = "Made for You",
-                author = Artist(name = "Snuggle Brain", id = null),
-                songCountText = "${songs.size} songs",
-                thumbnail = songs.firstOrNull()?.thumbnail ?: "",
-                playEndpoint = WatchEndpoint(videoId = songs.firstOrNull()?.id ?: "", playlistId = "echo_brain_mix_local"),
-                shuffleEndpoint = WatchEndpoint(videoId = songs.firstOrNull()?.id ?: "", playlistId = "echo_brain_mix_local"),
-                radioEndpoint = WatchEndpoint(videoId = songs.firstOrNull()?.id ?: "", playlistId = "echo_brain_mix_local")
-            )
-            
-            echoBrainPlaylists.value = listOf(CommunityPlaylistItem(playlistItem, songs))
-        } else {
-            echoBrainPlaylists.value = emptyList()
-        }
-    }
-
     
     private suspend fun loadLocalDataPhase() {
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
@@ -553,7 +520,6 @@ class HomeViewModel @Inject constructor(
         coroutineScope {
             launch(Dispatchers.IO) { getDailyDiscover() }
             launch(Dispatchers.IO) { getCommunityPlaylists() }
-            launch(Dispatchers.IO) { getEchoBrainPlaylists() }
             launch(Dispatchers.IO) { loadSimilarRecommendations() }
             launch(Dispatchers.IO) {
                 YouTube.home().onSuccess { page ->

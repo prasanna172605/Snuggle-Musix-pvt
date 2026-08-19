@@ -126,6 +126,7 @@ import com.snuggle.music.constants.LyricsLineSpacingKey
 import com.snuggle.music.constants.LyricsScrollKey
 import com.snuggle.music.constants.HideStatusBarOnFullscreenKey
 import com.snuggle.music.constants.MiniPlayerBackgroundStyleKey
+import com.snuggle.music.constants.UseNewMiniPlayerDesignKey
 import com.snuggle.music.constants.ShowCommentButtonKey
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -179,6 +180,7 @@ highlightKey: String? = null) {
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.APPLE_MUSIC,
         )
+    val (useNewMiniPlayerDesign, onUseNewMiniPlayerDesignChange) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(
             MiniPlayerBackgroundStyleKey,
@@ -1045,7 +1047,33 @@ highlightKey: String? = null) {
             items = buildList {
                 add(
                     Material3SettingsItem(
-    isHighlighted = (highlightKey == stringResource(R.string.miniplayer_background_style)),
+                        isHighlighted = (highlightKey == "Use Classic Mini Player"),
+                        icon = painterResource(R.drawable.play),
+                        title = { Text("Use Classic Mini Player") },
+                        description = { Text("Display a docked classic mini player instead of the floating pill") },
+                        trailingContent = {
+                            Switch(
+                                checked = !useNewMiniPlayerDesign,
+                                onCheckedChange = { isClassic ->
+                                    onUseNewMiniPlayerDesignChange(!isClassic)
+                                },
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (!useNewMiniPlayerDesign) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onUseNewMiniPlayerDesignChange(!(!useNewMiniPlayerDesign)) }
+                    )
+                )
+                add(
+                    Material3SettingsItem(
+                        isHighlighted = (highlightKey == stringResource(R.string.miniplayer_background_style)),
                         icon = painterResource(R.drawable.palette),
                         title = { Text(stringResource(R.string.miniplayer_background_style)) },
                         description = {
@@ -1080,9 +1108,9 @@ highlightKey: String? = null) {
             title = stringResource(R.string.player),
             items = listOfNotNull(
                 Material3SettingsItem(
-    isHighlighted = (highlightKey == "Apple Music Inspired"),
+    isHighlighted = (highlightKey == "Apple-Inspired UI"),
                     icon = painterResource(R.drawable.palette),
-                    title = { Text("Apple Music Inspired") },
+                    title = { Text("Apple-Inspired UI") },
                     trailingContent = {
                         Switch(
                             checked = !useNewPlayerDesign,

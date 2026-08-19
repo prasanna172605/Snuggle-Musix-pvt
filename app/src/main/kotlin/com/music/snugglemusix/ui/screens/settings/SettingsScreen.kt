@@ -141,16 +141,7 @@ highlightKey: String? = null) {
                     )
                 )
             }
-            if ("Snuggle Brain".contains(searchLower)) {
-                add(
-                    Material3SettingsItem(
-    isHighlighted = (highlightKey == "Snuggle Brain (Beta)"),
-                        icon = rememberVectorPainter(Icons.Outlined.AutoAwesome),
-                        title = { Text("Snuggle Brain (Beta)") },
-                        onClick = { navController.navigate("settings/echo_brain") }
-                    )
-                )
-            }
+
             if (appearanceText.lowercase().contains(searchLower)) {
                 add(
                     Material3SettingsItem(
