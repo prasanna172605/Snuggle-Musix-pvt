@@ -81,21 +81,22 @@ object YTPlayerUtils {
     private val poTokenGenerator = PoTokenGenerator()
 
     
-    private val MAIN_CLIENT: YouTubeClient = ANDROID_VR_1_43_32
+    private val MAIN_CLIENT: YouTubeClient = ANDROID_CREATOR
 
     
     private val METADATA_CLIENT: YouTubeClient = WEB_REMIX
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
-        ANDROID_VR_1_61_48,
+        ANDROID_CREATOR,
         WEB_REMIX,
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,  
         TVHTML5,
-        ANDROID_CREATOR,
         IPADOS,
-        ANDROID_VR_NO_AUTH,
-        MOBILE,
         IOS,
+        MOBILE,
+        ANDROID_VR_1_43_32,
+        ANDROID_VR_1_61_48,
+        ANDROID_VR_NO_AUTH,
         WEB,
         WEB_CREATOR
     )
@@ -496,7 +497,7 @@ object YTPlayerUtils {
         
         Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
         PlaybackLogManager.log(PlaybackLogLevel.DEBUG, "Trying ${MAIN_CLIENT.clientName} (Main)")
-        var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrThrow()
+        var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrNull()
 
         
         
@@ -534,7 +535,7 @@ object YTPlayerUtils {
         
         
         
-        val mainStatus = mainPlayerResponse.playabilityStatus.status
+        val mainStatus = mainPlayerResponse?.playabilityStatus?.status
         val isAgeRestrictedFromResponse = mainStatus in listOf(
             "AGE_CHECK_REQUIRED",
             "AGE_VERIFICATION_REQUIRED",
@@ -555,15 +556,7 @@ object YTPlayerUtils {
         }
 
         
-        if (mainPlayerResponse == null) {
-            throw Exception("Failed to get player response")
-        }
-
         
-        
-        val audioConfig = metadataResponse?.playerConfig?.audioConfig ?: mainPlayerResponse.playerConfig?.audioConfig
-        val videoDetails = metadataResponse?.videoDetails ?: mainPlayerResponse.videoDetails
-        val playbackTracking = metadataResponse?.playbackTracking ?: mainPlayerResponse.playbackTracking
         var format: PlayerResponse.StreamingData.Format? = null
         var streamUrl: String? = null
         var streamExpiresInSeconds: Int? = null
@@ -571,7 +564,7 @@ object YTPlayerUtils {
         var retryMainPlayerResponse: PlayerResponse? = if (usedAgeRestrictedClient != null) mainPlayerResponse else null
 
         
-        val currentStatus = mainPlayerResponse.playabilityStatus.status
+        val currentStatus = mainPlayerResponse?.playabilityStatus?.status
         var isAgeRestricted = currentStatus in listOf(
             "AGE_CHECK_REQUIRED",
             "AGE_VERIFICATION_REQUIRED",
@@ -584,7 +577,7 @@ object YTPlayerUtils {
         }
 
         
-        val isPrivateTrack = mainPlayerResponse.videoDetails?.musicVideoType == "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK"
+        val isPrivateTrack = mainPlayerResponse?.videoDetails?.musicVideoType == "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK"
 
         
         
@@ -592,7 +585,8 @@ object YTPlayerUtils {
         val startIndex = when {
             isPrivateTrack -> 1  
             isAgeRestricted -> 0
-            else -> -1
+            mainPlayerResponse?.playabilityStatus?.status == "OK" -> -1
+            else -> 0
         }
 
         for (clientIndex in (startIndex until STREAM_FALLBACK_CLIENTS.size)) {
@@ -808,6 +802,9 @@ object YTPlayerUtils {
         }
 
         Timber.tag(logTag).d("Successfully obtained playback data with format: ${format.mimeType}, bitrate: ${format.bitrate}")
+        val audioConfig = metadataResponse?.playerConfig?.audioConfig ?: streamPlayerResponse.playerConfig?.audioConfig
+        val videoDetails = metadataResponse?.videoDetails ?: streamPlayerResponse.videoDetails
+        val playbackTracking = metadataResponse?.playbackTracking ?: streamPlayerResponse.playbackTracking
         PlaybackData(
             audioConfig,
             videoDetails,

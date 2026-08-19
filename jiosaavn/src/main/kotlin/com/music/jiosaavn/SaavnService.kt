@@ -157,8 +157,7 @@ object SaavnService {
     private const val TAG = "SaavnService"
 
     private val BASE_URL = String(Base64.decode("aHR0cHM6Ly93d3cuamlvc2Fhdm4uY29tL2FwaS5waHA=", Base64.DEFAULT), Charsets.UTF_8)
-    private var decryptionCount = 0
-    private const val DECRYPTION_LIMIT = 3
+    // Decryption limit removed for continuous playback
 
     private val json = Json {
         isLenient         = true
@@ -195,12 +194,7 @@ object SaavnService {
      */
     private fun decryptUrl(encryptedUrl: String): String {
         if (encryptedUrl.isBlank()) return ""
-        if (decryptionCount >= DECRYPTION_LIMIT) {
-            Log.w(TAG, "decryptUrl: 3-time manual decryption limit reached.")
-            return ""
-        }
-        decryptionCount++
-        Log.d(TAG, "decryptUrl: encryptedUrl length = ${encryptedUrl.length}, count = $decryptionCount")
+        Log.d(TAG, "decryptUrl: encryptedUrl length = ${encryptedUrl.length}")
         return try {
             val key = "38346591" // DES 8-byte key
             val secretKey = SecretKeySpec(key.toByteArray(Charsets.UTF_8), "DES")
