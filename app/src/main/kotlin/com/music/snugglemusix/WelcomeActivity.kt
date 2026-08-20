@@ -1,6 +1,9 @@
 @file:OptIn(ExperimentalTextApi::class)
 
 package com.snuggle.music
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import com.snuggle.music.constants.CustomUsernameKey
 
 import android.Manifest
 import android.app.NotificationManager
@@ -324,6 +327,27 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         text = welcomeText,
                         style = thinHeaderStyle.copy(fontSize = 56.sp),
                         color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    val (customUsername, onCustomUsernameChange) = rememberPreference(CustomUsernameKey, "")
+                    
+                    OutlinedTextField(
+                        value = customUsername,
+                        onValueChange = { onCustomUsernameChange(it) },
+                        label = { Text("Enter your name", fontFamily = GoogleSansFlex) },
+                        placeholder = { Text("Guest", fontFamily = GoogleSansFlex) },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))

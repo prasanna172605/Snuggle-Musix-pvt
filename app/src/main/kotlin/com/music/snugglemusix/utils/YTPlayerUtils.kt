@@ -81,15 +81,15 @@ object YTPlayerUtils {
     private val poTokenGenerator = PoTokenGenerator()
 
     
-    private val MAIN_CLIENT: YouTubeClient = IOS
+    private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
 
     private val METADATA_CLIENT: YouTubeClient = WEB_REMIX
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
+        WEB_REMIX,
         IOS,
         IPADOS,
         MOBILE,
-        WEB_REMIX,
         ANDROID_CREATOR,
         TVHTML5,
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,
@@ -412,15 +412,7 @@ object YTPlayerUtils {
 
         return when (audioQuality) {
             AudioQuality.LOSSLESS -> {
-                val losslessRes = tryLossless()
-                if (losslessRes.isSuccess) return losslessRes
-
-                Timber.tag(TAG).e("Qobuz resolution failed, falling back to Saavn")
-                if (!hasShownLosslessToast) {
-                    hasShownLosslessToast = true
-                    showToastMsg(if (isDownload) "Lossless download unavailable, falling back to Saavn (320kbps)" else "Lossless stream unavailable, falling back to Saavn (320kbps)")
-                }
-
+                Timber.tag(TAG).d("Qobuz is offline. Directly falling back to Saavn...")
                 val saavnRes = trySaavn()
                 if (saavnRes.isSuccess) return saavnRes
 

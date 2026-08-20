@@ -59,10 +59,7 @@ highlightKey: String? = null) {
                 { "Server 1" },
                 offlineMessage = "Server hits its daily limit, we'll get you tomorrow!"
             ),
-            ServiceStatus(
-                "Qobuz",
-                { "https://qobuz.kennyy.com.br" }
-            )
+
         )
     }
 
