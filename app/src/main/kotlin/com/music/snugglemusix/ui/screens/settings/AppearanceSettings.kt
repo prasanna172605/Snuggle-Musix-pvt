@@ -161,7 +161,7 @@ highlightKey: String? = null) {
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
-        defaultValue = true
+        defaultValue = false
     )
     val (showCodecOnPlayer, onShowCodecOnPlayerChange) = rememberPreference(
         com.snuggle.music.constants.ShowCodecOnPlayerKey,
@@ -1047,6 +1047,38 @@ highlightKey: String? = null) {
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(scrollState = scrollState, 
+            title = "Navigation & Layout",
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.nav_bar),
+                    title = { Text("Classic Navigation Bar") },
+                    description = { Text("Use traditional fixed navigation bar instead of floating pill") },
+                    trailingContent = {
+                        Switch(
+                            checked = useClassicNavigationBar,
+                            onCheckedChange = { onUseClassicNavigationBarChange(it) }
+                        )
+                    },
+                    onClick = { onUseClassicNavigationBarChange(!useClassicNavigationBar) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text("Liquid Glass UI") },
+                    description = { Text("Enable Apple Liquid Glass style floating navbar and miniplayer") },
+                    trailingContent = {
+                        Switch(
+                            checked = useLiquidGlassUi,
+                            onCheckedChange = { onUseLiquidGlassUiChange(it) }
+                        )
+                    },
+                    onClick = { onUseLiquidGlassUiChange(!useLiquidGlassUi) }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(id = R.string.mini_player),
             items = buildList {
                 add(
@@ -1718,30 +1750,6 @@ highlightKey: String? = null) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.misc),
             items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.nav_bar),
-                    title = { Text("Classic Navigation Bar") },
-                    description = { Text("Use traditional fixed navigation bar instead of floating pill") },
-                    trailingContent = {
-                        Switch(
-                            checked = useClassicNavigationBar,
-                            onCheckedChange = { onUseClassicNavigationBarChange(it) }
-                        )
-                    },
-                    onClick = { onUseClassicNavigationBarChange(!useClassicNavigationBar) }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.palette),
-                    title = { Text("Liquid Glass UI") },
-                    description = { Text("Enable Apple Liquid Glass style floating navbar and miniplayer") },
-                    trailingContent = {
-                        Switch(
-                            checked = useLiquidGlassUi,
-                            onCheckedChange = { onUseLiquidGlassUiChange(it) }
-                        )
-                    },
-                    onClick = { onUseLiquidGlassUiChange(!useLiquidGlassUi) }
-                ),
                 Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.default_open_tab)),
                     icon = painterResource(R.drawable.nav_bar),

@@ -33,11 +33,12 @@ android {
         applicationId = "com.snuggle.music"
         minSdk = 26
         targetSdk = 36
-        versionCode = 602
-        versionName = "6.0.2"
+        versionCode = 1000
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        resourceConfigurations.addAll(setOf("en", "ta"))
 
         // LastFM API keys from GitHub Secrets
 //        val lastFmKey = localProperties.getProperty("LASTFM_API_KEY") ?: System.getenv("LASTFM_API_KEY") ?: ""
@@ -108,6 +109,9 @@ android {
 
     buildTypes {
         release {
+            ndk {
+                abiFilters.add("arm64-v8a")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             isCrunchPngs = false
@@ -165,10 +169,6 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
-            keepDebugSymbols += listOf(
-                "**/libandroidx.graphics.path.so",
-                "**/libdatastore_shared_counter.so"
-            )
         }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -228,6 +228,8 @@ dependencies {
 
     
     implementation(libs.haze)
+    implementation(libs.liquid.glass)
+    implementation(libs.liquid.glass.shape)
     implementation(libs.guava)
     implementation(libs.coroutines.guava)
     implementation(libs.concurrent.futures)

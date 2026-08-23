@@ -91,7 +91,7 @@ highlightKey: String? = null) {
     )
     val (maxSongCacheSize, onMaxSongCacheSizeChange) = rememberPreference(
         key = MaxSongCacheSizeKey,
-        defaultValue = 1024
+        defaultValue = 256
     )
     val (exportDirectoryUri, onExportDirectoryUriChange) = rememberPreference(
         key = ExportDirectoryUriKey,

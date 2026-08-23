@@ -313,8 +313,12 @@ object LyricsUtils {
     )
 
     
-    private val kuromojiTokenizer: Tokenizer by lazy {
-        Tokenizer()
+    private val kuromojiTokenizer: Tokenizer? by lazy {
+        try {
+            Tokenizer()
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private val HEX_ENTITY_REGEX = "&#x([0-9a-fA-F]+);".toRegex()
@@ -605,7 +609,11 @@ object LyricsUtils {
     }
 
     suspend fun romanizeJapanese(text: String): String = withContext(Dispatchers.Default) {
-        val tokens = kuromojiTokenizer.tokenize(text)
+        val tokenizer = kuromojiTokenizer
+        if (tokenizer == null) {
+            return@withContext text
+        }
+        val tokens = tokenizer.tokenize(text)
         val romanizedTokens = tokens.mapIndexed { index, token ->
             val currentReading = if (token.reading.isNullOrEmpty() || token.reading == "*") {
                 token.surface

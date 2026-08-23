@@ -97,9 +97,17 @@ object AppModule {
         @ApplicationContext context: Context,
         databaseProvider: DatabaseProvider,
     ): SimpleCache {
-        val cacheSize = context.dataStore[MaxSongCacheSizeKey] ?: 1024
+        try {
+            val oldDir = context.filesDir.resolve("exoplayer")
+            if (oldDir.exists()) {
+                oldDir.deleteRecursively()
+            }
+        } catch (e: Exception) {
+            // Ignore
+        }
+        val cacheSize = context.dataStore[MaxSongCacheSizeKey] ?: 256
         return SimpleCache(
-            context.filesDir.resolve("exoplayer"),
+            context.cacheDir.resolve("exoplayer"),
             when (cacheSize) {
                 -1 -> NoOpCacheEvictor()
                 else -> LeastRecentlyUsedCacheEvictor(cacheSize * 1024 * 1024L)

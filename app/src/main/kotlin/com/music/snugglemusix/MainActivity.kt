@@ -1,6 +1,9 @@
-
-
 package com.snuggle.music
+
+import com.snuggle.music.ui.component.rememberBackdrop
+import com.snuggle.music.ui.component.layerBackdrop
+import com.snuggle.music.ui.component.liquidGlass
+
 import com.snuggle.music.R
 import com.snuggle.music.BuildConfig
 import com.snuggle.music.ui.screens.settings.RingtoneViewModel
@@ -517,15 +520,16 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
         echomusicTheme(
-            darkTheme = useDarkTheme,
-            pureBlack = pureBlack,
+            darkTheme = if (useLiquidGlassUi) true else useDarkTheme,
+            pureBlack = if (useLiquidGlassUi) true else pureBlack,
             themeColor = themeColor,
         ) {
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
+                    .background(if (if (useLiquidGlassUi) true else pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
             ) {
                 val focusManager = LocalFocusManager.current
                 val density = LocalDensity.current
@@ -551,7 +555,7 @@ class MainActivity : ComponentActivity() {
                 }
                 val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
                 val (useClassicNavigationBar) = rememberPreference(UseClassicNavigationBarKey, defaultValue = false)
-                val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                 }
@@ -822,6 +826,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val baseBg = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
+                val backdrop = rememberBackdrop(baseBg)
 
                 val ringtoneViewModel: RingtoneViewModel = viewModel()
                 val ringtoneUiState by ringtoneViewModel.uiState.collectAsState()
@@ -836,6 +841,7 @@ class MainActivity : ComponentActivity() {
                     LocalShimmerTheme provides getShimmerTheme(),
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
+                    com.snuggle.music.ui.component.LocalPlatformBackdrop provides backdrop,
                 ) {
 
                     Scaffold(
@@ -902,14 +908,25 @@ class MainActivity : ComponentActivity() {
                                         },
                                         scrollBehavior = topAppBarScrollBehavior,
                                         colors = TopAppBarDefaults.topAppBarColors(
-                                            containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
-                                            scrolledContainerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
+                                            containerColor = if (useLiquidGlassUi) Color.Transparent else (if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer),
+                                            scrolledContainerColor = if (useLiquidGlassUi) Color.Transparent else (if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer),
                                             titleContentColor = MaterialTheme.colorScheme.onSurface,
                                             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         ),
                                         windowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Top),
                                         modifier = Modifier
+                                            .then(
+                                                if (useLiquidGlassUi) {
+                                                    Modifier.liquidGlass(
+                                                        backdrop = backdrop,
+                                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp),
+                                                        interactive = false
+                                                    )
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
                                             .windowInsetsPadding(
                                             if (showRail) {
                                                 WindowInsets(left = NavigationBarHeight)
@@ -1097,7 +1114,7 @@ class MainActivity : ComponentActivity() {
                                     onSearchLongClick = onRailSearchLongClick
                                 )
                             }
-                            Box(Modifier.weight(1f)) {
+                            Box(Modifier.weight(1f).layerBackdrop(backdrop)) {
                                 
                                 NavHost(
                                     navController = navController,

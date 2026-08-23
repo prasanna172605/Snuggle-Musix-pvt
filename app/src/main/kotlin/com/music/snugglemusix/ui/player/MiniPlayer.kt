@@ -113,6 +113,9 @@ import com.snuggle.music.constants.PlayerBackgroundStyle
 import com.snuggle.music.constants.PureBlackMiniPlayerKey
 import com.snuggle.music.constants.SwipeSensitivityKey
 import com.snuggle.music.constants.UseLiquidGlassUiKey
+import com.snuggle.music.ui.component.LocalPlatformBackdrop
+import com.snuggle.music.ui.component.liquidGlass
+import com.snuggle.music.constants.UseClassicNavigationBarKey
 import com.snuggle.music.ui.theme.liquidGlass
 import com.snuggle.music.constants.SwipeThumbnailKey
 import com.snuggle.music.constants.ThumbnailCornerRadius
@@ -230,6 +233,7 @@ private fun NewMiniPlayer(
     progressState: ProgressState,
     modifier: Modifier = Modifier
 ) {
+    val backdrop = com.snuggle.music.ui.component.LocalPlatformBackdrop.current
     val playerConnection = LocalPlayerConnection.current ?: return
     
     
@@ -266,6 +270,7 @@ private fun NewMiniPlayer(
     
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
     val useLiquidGlassUi by rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val useClassicNavigationBar by rememberPreference(UseClassicNavigationBarKey, defaultValue = false)
     val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
     
     
@@ -385,8 +390,8 @@ private fun NewMiniPlayer(
                 .then(if (isTabletLandscape) Modifier.width(480.dp).align(Alignment.Center) else Modifier.fillMaxWidth())
                 .height(MiniPlayerHeight)
                 .then(
-                    if (useLiquidGlassUi) {
-                        Modifier.liquidGlass(RoundedCornerShape(32.dp), borderAlpha = 0.18f)
+                    if (useLiquidGlassUi && !useClassicNavigationBar && backdrop != null) {
+                        Modifier.liquidGlass(backdrop = backdrop, shape = RoundedCornerShape(32.dp))
                     } else {
                         Modifier
                             .clip(RoundedCornerShape(32.dp))
@@ -593,6 +598,7 @@ private fun LegacyMiniPlayer(
     progressState: ProgressState,
     modifier: Modifier = Modifier
 ) {
+    val backdrop = com.snuggle.music.ui.component.LocalPlatformBackdrop.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
     
@@ -612,6 +618,7 @@ private fun LegacyMiniPlayer(
 
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
     val useLiquidGlassUi by rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val useClassicNavigationBar by rememberPreference(UseClassicNavigationBarKey, defaultValue = false)
     val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
     
     
@@ -649,10 +656,17 @@ private fun LegacyMiniPlayer(
             .widthIn(max = 340.dp)
             .height(MiniPlayerHeight)
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-            .background(
-                if (pureBlack && isSystemInDarkTheme()) Color.Black
-                else MaterialTheme.colorScheme.surfaceContainer
+            .then(
+                if (useLiquidGlassUi && !useClassicNavigationBar && backdrop != null) {
+                    Modifier.liquidGlass(backdrop = backdrop, shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                } else {
+                    Modifier
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                        .background(
+                            if (pureBlack && isSystemInDarkTheme()) Color.Black
+                            else MaterialTheme.colorScheme.surfaceContainer
+                        )
+                }
             )
             .let { baseModifier ->
                 if (swipeThumbnail) {

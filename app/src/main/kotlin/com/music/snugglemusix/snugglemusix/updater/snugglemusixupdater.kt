@@ -673,6 +673,11 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     val latestParts = latestVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     
+    // Custom check: If current is 6.x.x and latest is 1.x.x (or higher), treat 1.x.x as newer to support resetting versions
+    if (latestParts.getOrNull(0) == 1 && currentParts.getOrNull(0) == 6) {
+        return true
+    }
+    
     
     for (i in 0 until maxOf(latestParts.size, currentParts.size)) {
         val latest = latestParts.getOrElse(i) { 0 }

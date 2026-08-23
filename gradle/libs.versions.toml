@@ -1,4 +1,7 @@
 [versions]
+liquid-glass = "1.0.6"
+liquid-glass-shapes = "1.2.0"
+
 retrofit = "2.11.0"
 haze = "1.0.2"
 androidGradlePlugin = "9.0.0"
@@ -51,6 +54,9 @@ googleDriveApi = "v3-rev20260428-2.0.0"
 browser = "1.8.0"
 
 [libraries]
+liquid-glass = { module = "io.github.kyant0:backdrop", version.ref = "liquid-glass" }
+liquid-glass-shape = { module = "io.github.kyant0:shapes", version.ref = "liquid-glass-shapes" }
+
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }

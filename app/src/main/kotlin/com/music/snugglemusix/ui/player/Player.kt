@@ -303,7 +303,7 @@ fun BottomSheetPlayer(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
-        defaultValue = true
+        defaultValue = false
     )
     val showCodecOnPlayer by rememberPreference(com.snuggle.music.constants.ShowCodecOnPlayerKey, false)
     val hidePlayerSlider by rememberPreference(com.snuggle.music.constants.HidePlayerSliderKey, false)

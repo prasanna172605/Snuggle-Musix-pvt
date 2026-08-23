@@ -1,8 +1,33 @@
-
-
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
+@file:OptIn(
+    androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class,
+    androidx.compose.material3.ExperimentalMaterial3Api::class
+)
 package com.snuggle.music.ui.component
+
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
+
+
+import com.snuggle.music.ui.component.PlatformBackdrop
+import com.snuggle.music.ui.component.LiquidGlassTabBar
+import com.snuggle.music.ui.component.drawInteractiveGlass
+import com.snuggle.music.ui.component.rememberGlassInteraction
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import android.graphics.Bitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.core.graphics.scale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
+import java.nio.IntBuffer
+import kotlin.time.Duration.Companion.seconds
+import androidx.compose.foundation.isSystemInDarkTheme
+
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -108,33 +133,67 @@ fun FloatingNavigationToolbar(
     val hasFabAction = onFabClick != null && fabIconRes != null
 
     val useLiquidGlassUi by rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val backdrop = com.snuggle.music.ui.component.LocalPlatformBackdrop.current ?: return
+
+    val layer = rememberGraphicsLayer()
+    val searchFabInteraction = rememberGlassInteraction()
+    val luminanceAnimation = remember { Animatable(0.5f) }
+    val isDark = isSystemInDarkTheme()
+
+    LaunchedEffect(layer) {
+        val buffer = IntBuffer.allocate(25)
+        while (isActive) {
+            try {
+                withContext(Dispatchers.IO) {
+                    val imageBitmap = layer.toImageBitmap()
+                    val thumbnail =
+                        imageBitmap
+                            .asAndroidBitmap()
+                            .scale(5, 5, false)
+                            .copy(Bitmap.Config.ARGB_8888, false)
+                    buffer.rewind()
+                    thumbnail.copyPixelsToBuffer(buffer)
+                }
+                val averageLuminance =
+                    (0 until 25).sumOf { index ->
+                        val color = buffer.get(index)
+                        val r = (color shr 16 and 0xFF) / 255f
+                        val g = (color shr 8 and 0xFF) / 255f
+                        val b = (color and 0xFF) / 255f
+                        0.2126 * r + 0.7152 * g + 0.0722 * b
+                    } / 25
+                luminanceAnimation.animateTo(
+                    averageLuminance.coerceIn(0.3, 0.8).toFloat(),
+                    tween(500),
+                )
+            } catch (e: Exception) {
+                // Background sampling fails gracefully if layer is not yet fully laid out
+            }
+            delay(1.seconds)
+        }
+    }
 
     if (useLiquidGlassUi) {
         val mainItems = remember(items) { items.filter { it != Screens.Search } }
         val searchItem = remember(items) { items.find { it == Screens.Search } }
+        val selectedIndex = items.indexOfFirst { isSelected(it) }
 
         Row(
             modifier = modifier.wrapContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .height(56.dp)
-                    .liquidGlass(RoundedCornerShape(28.dp), borderAlpha = 0.18f)
-                    .padding(horizontal = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                ToolbarItemsContainer(
-                    items = mainItems,
-                    pureBlack = pureBlack,
-                    showSelectedLabels = false,
-                    onMusicRecognitionClick = onMusicRecognitionClick,
-                    musicRecognitionContentDescription = musicRecognitionContentDescription,
-                    isSelected = isSelected,
-                    onItemClick = onItemClick
-                )
-            }
+            LiquidGlassTabBar(
+                tabs = mainItems,
+                selectedTab = mainItems.indexOfFirst { isSelected(it) },
+                backdrop = backdrop,
+                layer = layer,
+                luminance = luminanceAnimation.value,
+                onTabSelected = { position ->
+                    val screen = mainItems[position]
+                    onItemClick(screen, isSelected(screen))
+                }
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -143,12 +202,19 @@ fun FloatingNavigationToolbar(
                 Box(
                     modifier = Modifier
                         .size(56.dp)
-                        .liquidGlass(CircleShape, borderAlpha = 0.18f)
+                        .drawInteractiveGlass(
+                            isDark = isDark,
+                            backdrop = backdrop,
+                            layer = layer,
+                            luminanceAnimation = luminanceAnimation.value,
+                            shape = CircleShape,
+                            interaction = searchFabInteraction
+                        )
                         .clickable { onItemClick(searchItem, isSearchSelected) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = searchItem.iconIdActive),
+                        painter = painterResource(id = if (isSearchSelected) searchItem.iconIdActive else searchItem.iconIdInactive),
                         contentDescription = "Search",
                         tint = if (isSearchSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp)

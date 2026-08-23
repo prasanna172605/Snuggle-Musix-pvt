@@ -74,8 +74,8 @@ object YTPlayerUtils {
                     .build()
             } ?: response.request
         }
-        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-        .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
     private val poTokenGenerator = PoTokenGenerator()
