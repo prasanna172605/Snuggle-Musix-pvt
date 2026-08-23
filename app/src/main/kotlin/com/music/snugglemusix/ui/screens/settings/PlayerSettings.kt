@@ -251,9 +251,9 @@ highlightKey: String? = null) {
             values = AudioQuality.values().filter { com.snuggle.music.constants.LOSSLESS_ENABLED || it != AudioQuality.LOSSLESS },
             valueText = {
                 when (it) {
-                    AudioQuality.OPUS -> "Opus"
-                    AudioQuality.SAAVN -> "Saavn (320kbps)"
-                    AudioQuality.LOSSLESS -> "Lossless (Unavailable currently)"
+                    AudioQuality.OPUS -> "Low (Fastest, saves data)"
+                    AudioQuality.SAAVN -> "Medium (Balanced quality & speed)"
+                    AudioQuality.LOSSLESS -> "High (mp4a-LATM 320kbps, uses more data)"
                 }
             }
         )

@@ -409,10 +409,18 @@ object YTPlayerUtils {
             }
         }
 
-        // All audio quality settings now resolve directly via YouTube mp4a-LATM.
-        // Saavn and Qobuz removed — they caused 30s+ timeout delays and fallback toasts.
-        Timber.tag(TAG).d("Resolving mp4a-LATM stream directly for videoId=$videoId")
-        return tryOpus()
+        // Route by audio quality preference:
+        // LOW (OPUS)     -> YouTube Opus lowest bitrate (fastest, saves data)
+        // MEDIUM (SAAVN) -> YouTube Opus highest bitrate (balanced quality & speed)
+        // HIGH (LOSSLESS)-> YouTube mp4a-LATM 320kbps (high quality, more data)
+        Timber.tag(TAG).d("Routing audio for quality=$audioQuality, videoId=$videoId")
+        return when (audioQuality) {
+            AudioQuality.OPUS, AudioQuality.SAAVN -> tryOpus()
+            AudioQuality.LOSSLESS -> {
+                val highResult = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
+                if (highResult.isSuccess) highResult else tryOpus()
+            }
+        }
     }
 
     private suspend fun resolvePlaybackData(
