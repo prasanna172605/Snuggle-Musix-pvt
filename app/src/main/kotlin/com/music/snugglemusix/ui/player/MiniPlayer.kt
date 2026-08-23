@@ -112,6 +112,8 @@ import com.snuggle.music.constants.MiniPlayerHeight
 import com.snuggle.music.constants.PlayerBackgroundStyle
 import com.snuggle.music.constants.PureBlackMiniPlayerKey
 import com.snuggle.music.constants.SwipeSensitivityKey
+import com.snuggle.music.constants.UseLiquidGlassUiKey
+import com.snuggle.music.ui.theme.liquidGlass
 import com.snuggle.music.constants.SwipeThumbnailKey
 import com.snuggle.music.constants.ThumbnailCornerRadius
 import com.snuggle.music.constants.UseNewMiniPlayerDesignKey
@@ -263,6 +265,7 @@ private fun NewMiniPlayer(
 
     
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
+    val useLiquidGlassUi by rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
     val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
     
     
@@ -381,10 +384,16 @@ private fun NewMiniPlayer(
             modifier = Modifier
                 .then(if (isTabletLandscape) Modifier.width(480.dp).align(Alignment.Center) else Modifier.fillMaxWidth())
                 .height(MiniPlayerHeight)
-                .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) }
-                .clip(RoundedCornerShape(32.dp))
-                .background(color = backgroundColor)
-                .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+                .then(
+                    if (useLiquidGlassUi) {
+                        Modifier.liquidGlass(RoundedCornerShape(32.dp), borderAlpha = 0.18f)
+                    } else {
+                        Modifier
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(color = backgroundColor)
+                            .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+                    }
+                )
         ) {
             
             MiniPlayerBackgroundLayer(
@@ -395,7 +404,10 @@ private fun NewMiniPlayer(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) },
             ) {
                 
                 NewMiniPlayerThumbnail(
@@ -599,6 +611,7 @@ private fun LegacyMiniPlayer(
     val isCasting by castHandler?.isCasting?.collectAsState() ?: remember { mutableStateOf(false) }
 
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
+    val useLiquidGlassUi by rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
     val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
     
     

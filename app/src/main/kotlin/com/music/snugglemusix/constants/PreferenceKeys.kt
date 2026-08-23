@@ -778,3 +778,6 @@ val YouTubeSubtitleLyricsEnabledKey = booleanPreferencesKey("youtube_subtitle_ly
 val PreloadNextSongEnabledKey = booleanPreferencesKey("preload_next_song_enabled")
 val PreloadNextSongLimitKey = intPreferencesKey("preload_next_song_limit")
 val PreloadLyricsEnabledKey = booleanPreferencesKey("preload_lyrics_enabled")
+
+val UseClassicNavigationBarKey = booleanPreferencesKey("use_classic_navigation_bar")
+val UseLiquidGlassUiKey = booleanPreferencesKey("use_liquid_glass_ui")

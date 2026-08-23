@@ -127,6 +127,8 @@ import com.snuggle.music.constants.LyricsScrollKey
 import com.snuggle.music.constants.HideStatusBarOnFullscreenKey
 import com.snuggle.music.constants.MiniPlayerBackgroundStyleKey
 import com.snuggle.music.constants.UseNewMiniPlayerDesignKey
+import com.snuggle.music.constants.UseClassicNavigationBarKey
+import com.snuggle.music.constants.UseLiquidGlassUiKey
 import com.snuggle.music.constants.ShowCommentButtonKey
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -181,6 +183,8 @@ highlightKey: String? = null) {
         rememberEnumPreference(PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.APPLE_MUSIC,
         )
     val (useNewMiniPlayerDesign, onUseNewMiniPlayerDesignChange) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
+    val (useClassicNavigationBar, onUseClassicNavigationBarChange) = rememberPreference(UseClassicNavigationBarKey, defaultValue = false)
+    val (useLiquidGlassUi, onUseLiquidGlassUiChange) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(
             MiniPlayerBackgroundStyleKey,
@@ -1714,6 +1718,30 @@ highlightKey: String? = null) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.misc),
             items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.nav_bar),
+                    title = { Text("Classic Navigation Bar") },
+                    description = { Text("Use traditional fixed navigation bar instead of floating pill") },
+                    trailingContent = {
+                        Switch(
+                            checked = useClassicNavigationBar,
+                            onCheckedChange = { onUseClassicNavigationBarChange(it) }
+                        )
+                    },
+                    onClick = { onUseClassicNavigationBarChange(!useClassicNavigationBar) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text("Liquid Glass UI") },
+                    description = { Text("Enable Apple Liquid Glass style floating navbar and miniplayer") },
+                    trailingContent = {
+                        Switch(
+                            checked = useLiquidGlassUi,
+                            onCheckedChange = { onUseLiquidGlassUiChange(it) }
+                        )
+                    },
+                    onClick = { onUseLiquidGlassUiChange(!useLiquidGlassUi) }
+                ),
                 Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.default_open_tab)),
                     icon = painterResource(R.drawable.nav_bar),

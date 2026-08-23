@@ -522,15 +522,36 @@ class HomeViewModel @Inject constructor(
             launch(Dispatchers.IO) { getCommunityPlaylists() }
             launch(Dispatchers.IO) { loadSimilarRecommendations() }
             launch(Dispatchers.IO) {
-                YouTube.home().onSuccess { page ->
-                    homePage.value = page.copy(
-                        sections = page.sections.mapNotNull { section ->
-                            val filteredItems = section.items
+                // Fetch home page feed
+                val homeResult = YouTube.home()
+                // Fetch Tamil hits as search summaries to inject into the Home feed (without changing UI language!)
+                val tamilSearch = YouTube.searchSummary("Tamil Hits").getOrNull()
+                val customTamilSections = tamilSearch?.summaries?.mapNotNull { summary ->
+                    if (summary.items.isEmpty()) null else {
+                        com.music.innertube.pages.HomePage.Section(
+                            title = "Tamil " + summary.title,
+                            label = "Trending",
+                            thumbnail = null,
+                            endpoint = null,
+                            items = summary.items
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs)
                                 .filterYoutubeShorts(hideYoutubeShorts)
-                            if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
-                        }
+                        )
+                    }
+                } ?: emptyList()
+
+                homeResult.onSuccess { page ->
+                    val filteredSections = page.sections.mapNotNull { section ->
+                        val filteredItems = section.items
+                            .filterExplicit(hideExplicit)
+                            .filterVideoSongs(hideVideoSongs)
+                            .filterYoutubeShorts(hideYoutubeShorts)
+                        if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
+                    }
+                    // Insert Tamil sections at the top of the home page feed sections
+                    homePage.value = page.copy(
+                        sections = customTamilSections + filteredSections
                     )
                 }.onFailure { reportException(it) }
             }

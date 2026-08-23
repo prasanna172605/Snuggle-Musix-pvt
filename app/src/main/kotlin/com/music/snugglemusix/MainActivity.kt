@@ -56,6 +56,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialogDefaults
@@ -172,6 +173,9 @@ import com.snuggle.music.constants.SYSTEM_DEFAULT
 import com.snuggle.music.constants.SelectedThemeColorKey
 import com.snuggle.music.constants.StopMusicOnTaskClearKey
 import com.snuggle.music.constants.UseNewMiniPlayerDesignKey
+import com.snuggle.music.constants.UseClassicNavigationBarKey
+import com.snuggle.music.constants.UseLiquidGlassUiKey
+import com.snuggle.music.ui.component.AppNavigationBar
 import com.snuggle.music.db.MusicDatabase
 import com.snuggle.music.db.entities.SearchHistory
 import com.snuggle.music.extensions.toEnum
@@ -546,6 +550,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
+                val (useClassicNavigationBar) = rememberPreference(UseClassicNavigationBarKey, defaultValue = false)
+                val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                 }
@@ -948,7 +954,7 @@ class MainActivity : ComponentActivity() {
                                         pureBlack = pureBlack
                                     )
 
-                                    val navSlideDistance = bottomInset + FloatingToolbarBottomPadding + NavigationBarHeight
+                                    val navSlideDistance = bottomInset + (if (useClassicNavigationBar) 0.dp else FloatingToolbarBottomPadding) + NavigationBarHeight
 
                                     val navOffsetY = if (navigationBarHeight == 0.dp) {
                                         navSlideDistance
@@ -966,7 +972,20 @@ class MainActivity : ComponentActivity() {
                                             .height(navSlideDistance)
                                             .offset(y = navOffsetY),
                                     ) {
-                                        FloatingNavigationToolbar(
+                                        if (useClassicNavigationBar) {
+                                            AppNavigationBar(
+                                                navigationItems = navigationItems,
+                                                currentRoute = currentRoute,
+                                                onItemClick = onNavItemClick,
+                                                pureBlack = pureBlack,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomCenter)
+                                                    .fillMaxWidth()
+                                                    .windowInsetsPadding(WindowInsets.navigationBars)
+                                                    .height(NavigationBarHeight)
+                                            )
+                                        } else {
+                                            FloatingNavigationToolbar(
                                             items = navigationItems,
                                             pureBlack = pureBlack,
                                             onShuffleClick = onShuffleClick,
@@ -993,7 +1012,8 @@ class MainActivity : ComponentActivity() {
                                                     bottom = bottomInset + FloatingToolbarBottomPadding,
                                                 )
                                                 .height(NavigationBarHeight)
-                                        )
+                                            )
+                                        }
                                     }
 
                                     Box(

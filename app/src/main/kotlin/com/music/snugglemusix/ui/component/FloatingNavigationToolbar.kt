@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -75,6 +76,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.snuggle.music.R
 import com.snuggle.music.ui.screens.Screens
+import com.snuggle.music.utils.rememberPreference
+import com.snuggle.music.constants.UseLiquidGlassUiKey
+import com.snuggle.music.ui.theme.liquidGlass
 
 @Composable
 fun FloatingNavigationToolbar(
@@ -102,6 +106,58 @@ fun FloatingNavigationToolbar(
     )
     val hasShuffleAction = (onShuffleClick != null && shuffleIconRes != null) || onMusicRecognitionClick != null
     val hasFabAction = onFabClick != null && fabIconRes != null
+
+    val useLiquidGlassUi by rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+
+    if (useLiquidGlassUi) {
+        val mainItems = remember(items) { items.filter { it != Screens.Search } }
+        val searchItem = remember(items) { items.find { it == Screens.Search } }
+
+        Row(
+            modifier = modifier.wrapContentSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .height(56.dp)
+                    .liquidGlass(RoundedCornerShape(28.dp), borderAlpha = 0.18f)
+                    .padding(horizontal = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                ToolbarItemsContainer(
+                    items = mainItems,
+                    pureBlack = pureBlack,
+                    showSelectedLabels = false,
+                    onMusicRecognitionClick = onMusicRecognitionClick,
+                    musicRecognitionContentDescription = musicRecognitionContentDescription,
+                    isSelected = isSelected,
+                    onItemClick = onItemClick
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            if (searchItem != null) {
+                val isSearchSelected = isSelected(searchItem)
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .liquidGlass(CircleShape, borderAlpha = 0.18f)
+                        .clickable { onItemClick(searchItem, isSearchSelected) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = searchItem.iconIdActive),
+                        contentDescription = "Search",
+                        tint = if (isSearchSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+        return
+    }
 
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
