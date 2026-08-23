@@ -194,6 +194,8 @@ import com.snuggle.music.ui.component.LocalMenuState
 import com.snuggle.music.ui.component.Lyrics
 import com.snuggle.music.ui.component.PlayerSliderTrack
 import com.snuggle.music.ui.component.ResizableIconButton
+import com.snuggle.music.ui.component.LiquidGlassIconButton
+import com.snuggle.music.ui.theme.liquidGlass
 import com.snuggle.music.ui.component.SquigglySlider
 import com.snuggle.music.ui.component.WavySlider
 import com.snuggle.music.ui.component.rememberBottomSheetState
@@ -352,6 +354,7 @@ fun BottomSheetPlayer(
             playerConnection.player.removeListener(listener)
         }
     }
+    val useLiquidGlassUi by rememberPreference(com.snuggle.music.constants.UseLiquidGlassUiKey, defaultValue = true)
     val swipeLyrics by rememberPreference(SwipeLyricsKey, false)
     val enableLyricsThumbnailPlayPause by rememberPreference(EnableLyricsThumbnailPlayPauseKey, false)
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)

@@ -1,4 +1,4 @@
-
+﻿
 
 package com.snuggle.music.utils
 
@@ -145,7 +145,7 @@ object YTPlayerUtils {
             var saavnAttempt: Result<PlaybackData>? = null
             var lastException: Exception? = null
             
-            Timber.tag(TAG).d("JioSaavn streaming enabled (via SAAVN) — trying Saavn for videoId=$videoId")
+            Timber.tag(TAG).d("JioSaavn streaming enabled (via SAAVN) â€” trying Saavn for videoId=$videoId")
             try {
                 saavnAttempt = kotlinx.coroutines.withTimeoutOrNull(15000L) {
                     val metadata = playerResponseForMetadata(videoId).getOrNull()
@@ -409,45 +409,10 @@ object YTPlayerUtils {
             }
         }
 
-        return when (audioQuality) {
-            AudioQuality.LOSSLESS -> {
-                Timber.tag(TAG).d("Qobuz is offline. Directly falling back to Saavn...")
-                val saavnRes = trySaavn()
-                if (saavnRes.isSuccess) return saavnRes
-
-                Timber.tag(TAG).e("Saavn resolution failed, falling back to YouTube Opus")
-                if (!hasShownSaavnToast) {
-                    hasShownSaavnToast = true
-                    showToastMsg(if (isDownload) "Lossless & Saavn unavailable, downloading Opus" else "Lossless & Saavn unavailable, playing Opus")
-                }
-
-                tryOpus()
-            }
-            AudioQuality.SAAVN -> {
-                val saavnRes = trySaavn()
-                if (saavnRes.isSuccess) return saavnRes
-
-                Timber.tag(TAG).e("Saavn resolution failed, falling back to YouTube Opus")
-                if (!hasShownSaavnToast) {
-                    hasShownSaavnToast = true
-                    showToastMsg(if (isDownload) "Saavn unavailable, downloading Opus" else "Saavn unavailable, playing Opus")
-                }
-
-                tryOpus()
-            }
-            else -> {
-                val opusRes = tryOpus()
-                if (opusRes.isSuccess) return opusRes
-
-                Timber.tag(TAG).e("Opus resolution failed, falling back to Saavn")
-                if (!hasShownOpusToast) {
-                    hasShownOpusToast = true
-                    showToastMsg(if (isDownload) "Opus unavailable, downloading Saavn" else "Opus unavailable, playing Saavn")
-                }
-
-                trySaavn()
-            }
-        }
+        // All audio quality settings now resolve directly via YouTube mp4a-LATM.
+        // Saavn and Qobuz removed — they caused 30s+ timeout delays and fallback toasts.
+        Timber.tag(TAG).d("Resolving mp4a-LATM stream directly for videoId=$videoId")
+        return tryOpus()
     }
 
     private suspend fun resolvePlaybackData(
@@ -825,13 +790,10 @@ object YTPlayerUtils {
     ): PlayerResponse.StreamingData.Format? {
         Timber.tag(logTag).d("Finding format with audioQuality: $audioQuality, network metered: ${connectivityManager.isActiveNetworkMetered}")
 
+                // Force mp4a-LATM only — removes Opus/webm so 320kbps mp4a always wins.
         val format = playerResponse.streamingData?.adaptiveFormats
-            ?.filter { it.isAudio && it.isOriginal }
-            ?.maxByOrNull {
-                it.bitrate * when (audioQuality) {
-                    AudioQuality.OPUS, AudioQuality.SAAVN, AudioQuality.LOSSLESS -> 1
-                } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0) 
-            }
+            ?.filter { it.isAudio && it.isOriginal && it.mimeType.startsWith("audio/mp4") }
+            ?.maxByOrNull { it.bitrate }
 
         if (format != null) {
             Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")

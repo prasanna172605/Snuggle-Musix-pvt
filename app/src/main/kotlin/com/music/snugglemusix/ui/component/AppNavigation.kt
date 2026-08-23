@@ -129,7 +129,8 @@ fun AppNavigationBar(
     modifier: Modifier = Modifier,
     pureBlack: Boolean = false,
     slimNav: Boolean = false,
-    onSearchLongClick: (() -> Unit)? = null
+    onSearchLongClick: (() -> Unit)? = null,
+    onMusicRecognitionClick: (() -> Unit)? = null
 ) {
     val containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
     val contentColor = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
@@ -201,6 +202,22 @@ fun AppNavigationBar(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+                } else null
+            )
+        }
+        // Recognition button in classic nav
+        if (onMusicRecognitionClick != null) {
+            NavigationBarItem(
+                selected = false,
+                onClick = { onMusicRecognitionClick() },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = com.snuggle.music.R.drawable.mic),
+                        contentDescription = "Song Recognition"
+                    )
+                },
+                label = if (!slimNav) {
+                    { Text(text = "Recognize", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
                 } else null
             )
         }

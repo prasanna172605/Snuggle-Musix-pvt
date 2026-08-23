@@ -995,6 +995,7 @@ class MainActivity : ComponentActivity() {
                                                 currentRoute = currentRoute,
                                                 onItemClick = onNavItemClick,
                                                 pureBlack = pureBlack,
+                                                onMusicRecognitionClick = onMusicRecognitionClick,
                                                 modifier = Modifier
                                                     .align(Alignment.BottomCenter)
                                                     .fillMaxWidth()

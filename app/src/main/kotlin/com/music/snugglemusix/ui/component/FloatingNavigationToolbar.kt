@@ -221,6 +221,33 @@ fun FloatingNavigationToolbar(
                     )
                 }
             }
+
+            // Recognition pill — liquid glass floating button
+            if (onMusicRecognitionClick != null) {
+                Spacer(modifier = Modifier.width(8.dp))
+                val recognitionInteraction = rememberGlassInteraction()
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .drawInteractiveGlass(
+                            isDark = isDark,
+                            backdrop = backdrop,
+                            layer = layer,
+                            luminanceAnimation = luminanceAnimation.value,
+                            shape = CircleShape,
+                            interaction = recognitionInteraction
+                        )
+                        .clickable { onMusicRecognitionClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = com.snuggle.music.R.drawable.mic),
+                        contentDescription = musicRecognitionContentDescription,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
         }
         return
     }
