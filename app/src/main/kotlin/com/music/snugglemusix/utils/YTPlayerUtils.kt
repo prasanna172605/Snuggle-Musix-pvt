@@ -783,27 +783,46 @@ object YTPlayerUtils {
             .onFailure { Timber.tag(logTag).e(it, "Failed to fetch metadata") }
     }
 
-    private fun findFormat(
+        private fun findFormat(
         playerResponse: PlayerResponse,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
     ): PlayerResponse.StreamingData.Format? {
         Timber.tag(logTag).d("Finding format with audioQuality: $audioQuality, network metered: ${connectivityManager.isActiveNetworkMetered}")
 
-                // Force mp4a-LATM only — removes Opus/webm so 320kbps mp4a always wins.
-        val format = playerResponse.streamingData?.adaptiveFormats
-            ?.filter { it.isAudio && it.isOriginal && it.mimeType.startsWith("audio/mp4") }
-            ?.maxByOrNull { it.bitrate }
+        // Mapped dynamic stream selections
+        val format = when (audioQuality) {
+            AudioQuality.OPUS -> {
+                // Low quality - Select lowest bitrate Opus codec (saves data, instant load)
+                playerResponse.streamingData?.adaptiveFormats
+                    ?.filter { it.isAudio && it.isOriginal && it.mimeType.contains("codecs=\"opus\"") }
+                    ?.minByOrNull { it.bitrate }
+            }
+            AudioQuality.SAAVN -> {
+                // Medium quality - Select highest bitrate Opus codec (balanced quality & load speed)
+                playerResponse.streamingData?.adaptiveFormats
+                    ?.filter { it.isAudio && it.isOriginal && it.mimeType.contains("codecs=\"opus\"") }
+                    ?.maxByOrNull { it.bitrate }
+            }
+            AudioQuality.LOSSLESS -> {
+                // High quality - Force select mp4a-LATM 320kbps stream
+                playerResponse.streamingData?.adaptiveFormats
+                    ?.filter { it.isAudio && it.isOriginal && it.mimeType.startsWith("audio/mp4") }
+                    ?.maxByOrNull { it.bitrate }
+            }
+        }
 
         if (format != null) {
             Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")
         } else {
-            Timber.tag(logTag).d("No suitable audio format found")
+            // Fallback to highest available audio stream if none of the above matches
+            return playerResponse.streamingData?.adaptiveFormats
+                ?.filter { it.isAudio && it.isOriginal }
+                ?.maxByOrNull { it.bitrate }
         }
 
         return format
     }
-    
     private fun validateStatus(url: String): Boolean {
         Timber.tag(logTag).d("Validating stream URL status")
         try {

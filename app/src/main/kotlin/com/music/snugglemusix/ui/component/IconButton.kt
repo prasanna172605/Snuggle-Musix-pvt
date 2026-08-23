@@ -2,6 +2,10 @@
 
 package com.snuggle.music.ui.component
 
+import com.snuggle.music.constants.UseLiquidGlassUiKey
+import com.snuggle.music.ui.theme.liquidGlass
+import com.snuggle.music.utils.rememberPreference
+
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -41,19 +45,37 @@ fun ResizableIconButton(
     indication: Indication? = null,
     onClick: () -> Unit = {},
 ) {
-    Image(
-        painter = painterResource(icon),
-        contentDescription = null,
-        colorFilter = ColorFilter.tint(color),
-        modifier = modifier
-            .clickable(
-                indication = indication ?: ripple(bounded = false),
-                interactionSource = remember { MutableInteractionSource() },
-                enabled = enabled,
-                onClick = onClick,
+    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val backdrop = LocalPlatformBackdrop.current
+    
+    if (useLiquidGlassUi && backdrop != null) {
+        LiquidGlassIconButton(
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled,
+            shape = CircleShape
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.White)
             )
-            .alpha(if (enabled) 1f else 0.5f),
-    )
+        }
+    } else {
+        Image(
+            painter = painterResource(icon),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(color),
+            modifier = modifier
+                .clickable(
+                    indication = indication ?: ripple(bounded = false),
+                    interactionSource = remember { MutableInteractionSource() },
+                    enabled = enabled,
+                    onClick = onClick,
+                )
+                .alpha(if (enabled) 1f else 0.5f),
+        )
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -67,26 +89,41 @@ fun IconButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable () -> Unit,
 ) {
-    Box(
-        modifier = modifier
-            .minimumInteractiveComponentSize()
-            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-            .clip(CircleShape)
-            .background(color = colors.containerColor)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
-                enabled = enabled,
-                role = Role.Button,
-                interactionSource = interactionSource,
-                indication = ripple(
-                    bounded = false,
-                    radius = 24.dp
+    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val backdrop = LocalPlatformBackdrop.current
+    
+    if (useLiquidGlassUi && backdrop != null) {
+        LiquidGlassIconButton(
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled,
+            shape = CircleShape
+        ) {
+            val contentColor = Color.White
+            CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
+        }
+    } else {
+        Box(
+            modifier = modifier
+                .minimumInteractiveComponentSize()
+                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .clip(CircleShape)
+                .background(color = colors.containerColor)
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                    enabled = enabled,
+                    role = Role.Button,
+                    interactionSource = interactionSource,
+                    indication = ripple(
+                        bounded = false,
+                        radius = 24.dp
+                    ),
                 ),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        val contentColor = colors.contentColor
-        CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
+            contentAlignment = Alignment.Center,
+        ) {
+            val contentColor = colors.contentColor
+            CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
+        }
     }
 }

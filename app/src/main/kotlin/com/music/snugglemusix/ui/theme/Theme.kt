@@ -30,11 +30,12 @@ fun echomusicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
     themeColor: Color = DefaultThemeColor,
+    useLiquidGlassUi: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     
-    val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    val useSystemDynamicColor = !useLiquidGlassUi && (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 
     
     val baseColorScheme = if (useSystemDynamicColor) {

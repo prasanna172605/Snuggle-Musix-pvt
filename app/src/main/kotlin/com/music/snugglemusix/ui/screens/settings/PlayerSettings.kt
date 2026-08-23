@@ -334,9 +334,9 @@ highlightKey: String? = null) {
                     description = {
                         Text(
                             when (audioQuality) {
-                                AudioQuality.OPUS -> "Opus"
-                                AudioQuality.SAAVN -> "Saavn (320kbps)"
-                                AudioQuality.LOSSLESS -> "Lossless (Unavailable currently)"
+                                AudioQuality.OPUS -> "Low (Fastest, saves data - Opus)"
+                                AudioQuality.SAAVN -> "Medium (Optimal, balanced - Opus)"
+                                AudioQuality.LOSSLESS -> "High (mp4a-LATM 320kbps)"
                             }
                         )
                     },
