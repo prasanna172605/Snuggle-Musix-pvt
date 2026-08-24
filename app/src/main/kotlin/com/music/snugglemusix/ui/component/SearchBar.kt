@@ -61,6 +61,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.snuggle.music.constants.AppBarHeight
 
+import com.snuggle.music.constants.UseLiquidGlassUiKey
+import com.snuggle.music.ui.component.LocalPlatformBackdrop
+import com.snuggle.music.ui.theme.liquidGlass
+import com.snuggle.music.utils.rememberPreference
+
 @ExperimentalMaterial3Api
 @Composable
 fun TopSearch(
@@ -84,7 +89,16 @@ fun TopSearch(
     focusRequester: FocusRequester = remember { FocusRequester() },
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
-    Box(modifier = modifier) {
+    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val backdrop = LocalPlatformBackdrop.current
+    val finalShape = shape ?: RoundedCornerShape(24.dp)
+    val glassModifier = if (useLiquidGlassUi && backdrop != null) {
+        Modifier.liquidGlass(backdrop = backdrop, shape = finalShape, interactive = false)
+    } else {
+        Modifier
+    }
+
+    Box(modifier = modifier.then(glassModifier)) {
         TopAppBar(
             title = {
                 SearchBarInputField(

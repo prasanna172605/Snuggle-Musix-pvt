@@ -1,10 +1,8 @@
-
-
 package com.snuggle.music.ui.component
 
 import com.snuggle.music.constants.UseLiquidGlassUiKey
-import com.snuggle.music.ui.theme.liquidGlass
 import com.snuggle.music.utils.rememberPreference
+import com.snuggle.music.ui.component.LocalPlatformBackdrop
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -35,6 +33,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun ResizableIconButton(
@@ -127,3 +126,6 @@ fun IconButton(
         }
     }
 }
+
+
+

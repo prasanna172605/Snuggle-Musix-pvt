@@ -73,7 +73,7 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledIconButton
+import com.snuggle.music.ui.component.LiquidGlassIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -1616,13 +1616,9 @@ fun BottomSheetPlayer(
                     ) {
                         AnimatedContent(targetState = showInlineLyrics, label = "DownloadButton") { showLyrics ->
                             if (showLyrics) {
-                                FilledIconButton(
+                                LiquidGlassIconButton(
                                     onClick = { isFullScreen = !isFullScreen },
                                     shape = shareShape,
-                                    colors = IconButtonDefaults.filledIconButtonColors(
-                                        containerColor = textButtonColor,
-                                        contentColor = iconButtonColor,
-                                    ),
                                     modifier = Modifier.size(42.dp),
                                 ) {
                                     Icon(
@@ -1632,7 +1628,7 @@ fun BottomSheetPlayer(
                                     )
                                 }
                             } else {
-                                FilledIconButton(
+                                LiquidGlassIconButton(
                                     onClick = {
                                         mediaMetadata?.let { meta ->
                                             when (download?.state) {
@@ -1665,10 +1661,6 @@ fun BottomSheetPlayer(
                                         }
                                     },
                                     shape = shareShape,
-                                    colors = IconButtonDefaults.filledIconButtonColors(
-                                        containerColor = textButtonColor,
-                                        contentColor = iconButtonColor,
-                                    ),
                                     modifier = Modifier.size(42.dp),
                                 ) {
                                     when (download?.state) {
@@ -1699,7 +1691,7 @@ fun BottomSheetPlayer(
                         AnimatedContent(targetState = showInlineLyrics, label = "LikeButton") { showLyrics ->
                             if (showLyrics) {
                                 val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
-                                FilledIconButton(
+                                LiquidGlassIconButton(
                                     onClick = {
                                         menuState.show {
                                             com.snuggle.music.ui.menu.LyricsMenu(
@@ -1718,10 +1710,6 @@ fun BottomSheetPlayer(
                                         }
                                     },
                                     shape = favShape,
-                                    colors = IconButtonDefaults.filledIconButtonColors(
-                                        containerColor = textButtonColor,
-                                        contentColor = iconButtonColor,
-                                    ),
                                     modifier = Modifier.size(42.dp),
                                 ) {
                                     Icon(
@@ -1735,13 +1723,9 @@ fun BottomSheetPlayer(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    FilledIconButton(
+                                    LiquidGlassIconButton(
                                         onClick = playerConnection::toggleLike,
                                         shape = middleShape,
-                                        colors = IconButtonDefaults.filledIconButtonColors(
-                                            containerColor = textButtonColor,
-                                            contentColor = iconButtonColor,
-                                        ),
                                         modifier = Modifier.size(42.dp),
                                     ) {
                                         Icon(
@@ -1755,7 +1739,7 @@ fun BottomSheetPlayer(
                                         )
                                     }
 
-                                    FilledIconButton(
+                                    LiquidGlassIconButton(
                                         onClick = {
                                             mediaMetadata?.let { meta ->
                                                 menuState.show {
@@ -1776,10 +1760,6 @@ fun BottomSheetPlayer(
                                             }
                                         },
                                         shape = favShape,
-                                        colors = IconButtonDefaults.filledIconButtonColors(
-                                            containerColor = textButtonColor,
-                                            contentColor = iconButtonColor,
-                                        ),
                                         modifier = Modifier.size(42.dp),
                                     ) {
                                         Icon(
@@ -2238,15 +2218,10 @@ fun BottomSheetPlayer(
                                 label = "nextButtonScale"
                             )
 
-                            FilledIconButton(
+                            LiquidGlassIconButton(
                                 onClick = playerConnection::seekToPrevious,
                                 enabled = canSkipPrevious && !isListenTogetherGuest,
                                 shape = CircleShape,
-                                interactionSource = backInteractionSource,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = sideButtonContainerColor,
-                                    contentColor = sideButtonContentColor,
-                                ),
                                 modifier = Modifier
                                     .size(68.dp)
                                     .graphicsLayer { scaleX = backButtonScale; scaleY = backButtonScale }
@@ -2277,11 +2252,11 @@ fun BottomSheetPlayer(
                                 label = "rotation"
                             )
 
-                            FilledIconButton(
+                            LiquidGlassIconButton(
                                 onClick = {
                                     if (isListenTogetherGuest) {
                                         playerConnection.toggleMute()
-                                        return@FilledIconButton
+                                        return@LiquidGlassIconButton
                                     }
                                     if (isCasting) {
                                         if (castIsPlaying) {
@@ -2297,11 +2272,6 @@ fun BottomSheetPlayer(
                                     }
                                 },
                                 shape = if (cookieIndent > 0f) WavyShape(9, cookieIndent, rotation) else CircleShape,
-                                interactionSource = playPauseInteractionSource,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = textButtonColor,
-                                    contentColor = iconButtonColor,
-                                ),
                                 modifier = Modifier
                                     .size(84.dp)
                                     .graphicsLayer { scaleX = playPauseScale; scaleY = playPauseScale }
@@ -2330,15 +2300,10 @@ fun BottomSheetPlayer(
 
                             Spacer(modifier = Modifier.width(24.dp))
 
-                            FilledIconButton(
+                            LiquidGlassIconButton(
                                 onClick = playerConnection::seekToNext,
                                 enabled = canSkipNext && !isListenTogetherGuest,
                                 shape = CircleShape,
-                                interactionSource = nextInteractionSource,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = sideButtonContainerColor,
-                                    contentColor = sideButtonContentColor,
-                                ),
                                 modifier = Modifier
                                     .size(68.dp)
                                     .graphicsLayer { scaleX = nextButtonScale; scaleY = nextButtonScale }

@@ -1895,19 +1895,24 @@ fun Lyrics(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FilledTonalButton(
+                // Liquid Glass Cancel button
+                LiquidGlassIconButton(
                     onClick = {
                         isSelectionModeActive = false
                         selectedIndices.clear()
-                    }
+                    },
+                    size = 44.dp,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.close),
                         contentDescription = stringResource(R.string.cancel),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
+                        tint = androidx.compose.ui.graphics.Color.White
                     )
                 }
-                FilledTonalButton(
+                // Liquid Glass Share button
+                LiquidGlassIconButton(
                     onClick = {
                         if (selectedIndices.isNotEmpty()) {
                             val sortedIndices = selectedIndices.sorted()
@@ -1927,15 +1932,25 @@ fun Lyrics(
                             selectedIndices.clear()
                         }
                     },
-                    enabled = selectedIndices.isNotEmpty()
+                    enabled = selectedIndices.isNotEmpty(),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.share),
-                        contentDescription = stringResource(R.string.share_selected),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.share))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.share),
+                            contentDescription = stringResource(R.string.share_selected),
+                            modifier = Modifier.size(20.dp),
+                            tint = androidx.compose.ui.graphics.Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.share),
+                            color = androidx.compose.ui.graphics.Color.White
+                        )
+                    }
                 }
             }
         }

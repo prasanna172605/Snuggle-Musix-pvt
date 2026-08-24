@@ -2,10 +2,14 @@
 
 package com.snuggle.music.ui.component
 
+import android.os.Build
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,15 +21,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,7 +38,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -43,8 +52,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 
 
 @Composable
@@ -158,23 +165,35 @@ fun NewMenuSectionHeader(
 }
 
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NewActionGrid(
     actions: List<NewAction>,
     modifier: Modifier = Modifier,
     columns: Int = 3
 ) {
+    // Determine corner radius based on position for a pill-group look
+    fun shapeForIndex(index: Int, size: Int): RoundedCornerShape {
+        val large = 20.dp
+        val small = 4.dp
+        return when {
+            size == 1 -> RoundedCornerShape(large)
+            index == 0 -> RoundedCornerShape(topStart = large, bottomStart = large, topEnd = small, bottomEnd = small)
+            index == size - 1 -> RoundedCornerShape(topStart = small, bottomStart = small, topEnd = large, bottomEnd = large)
+            else -> RoundedCornerShape(small)
+        }
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         val indexedActions = actions.mapIndexed { index, action -> index to action }
         val chunks = indexedActions.chunked(columns)
         chunks.forEach { rowIndexedActions ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 rowIndexedActions.forEach { (index, action) ->
                     var performAction by remember { mutableStateOf(false) }
@@ -186,37 +205,82 @@ fun NewActionGrid(
                         }
                     }
 
-                    val bgColor = if (action.backgroundColor != Color.Unspecified) action.backgroundColor else MaterialTheme.colorScheme.surfaceVariant
-                    val contentCol = if (action.contentColor != Color.Unspecified) action.contentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    val shape = shapeForIndex(index, rowIndexedActions.size)
+                    val interactionSource = remember { MutableInteractionSource() }
 
-                    ToggleButton(
-                        checked = false,
-                        onCheckedChange = { performAction = true },
-                        enabled = action.enabled,
-                        shapes = when {
-                            actions.size == 1 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            index == actions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                        },
-                        colors = ToggleButtonDefaults.toggleButtonColors(
-                            containerColor = bgColor,
-                            contentColor = contentCol,
-                            disabledContainerColor = bgColor.copy(alpha = 0.5f),
-                            disabledContentColor = contentCol.copy(alpha = 0.5f)
-                        ),
+                    // Liquid Glass surface
+                    val glassModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        Modifier
+                            .graphicsLayer {
+                                renderEffect = android.graphics.RenderEffect.createBlurEffect(
+                                    22f, 22f, android.graphics.Shader.TileMode.CLAMP
+                                ).asComposeRenderEffect()
+                                clip = true
+                                this.shape = shape
+                            }
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.White.copy(alpha = 0.13f),
+                                        Color.White.copy(alpha = 0.04f)
+                                    )
+                                ),
+                                shape = shape
+                            )
+                            .border(
+                                width = 0.7.dp,
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.White.copy(alpha = 0.32f),
+                                        Color.White.copy(alpha = 0.07f)
+                                    )
+                                ),
+                                shape = shape
+                            )
+                    } else {
+                        Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
+                                shape = shape
+                            )
+                            .border(
+                                width = 0.7.dp,
+                                color = Color.White.copy(alpha = 0.18f),
+                                shape = shape
+                            )
+                    }
+
+                    Box(
                         modifier = Modifier
                             .weight(1f)
-                            .semantics { role = Role.Button }
+                            .clip(shape)
+                            .then(glassModifier)
+                            .then(
+                                if (!action.enabled) Modifier.alpha(0.45f) else Modifier
+                            )
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = ripple(bounded = true, color = Color.White.copy(alpha = 0.18f)),
+                                enabled = action.enabled
+                            ) { performAction = true }
+                            .padding(horizontal = 12.dp, vertical = 14.dp)
+                            .semantics { role = Role.Button },
+                        contentAlignment = Alignment.Center
                     ) {
-                        action.icon()
-                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                        Text(
-                            text = action.text,
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            action.icon()
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = action.text,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }

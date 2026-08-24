@@ -93,7 +93,7 @@ import com.snuggle.music.ui.component.NavigationTitle
 import com.snuggle.music.utils.rememberEnumPreference
 import com.snuggle.music.utils.rememberPreference
 import com.snuggle.music.ui.component.LiquidGlassIconButton
-import com.snuggle.music.ui.theme.liquidGlass
+import com.snuggle.music.ui.component.liquidGlass
 import com.snuggle.music.constants.UseLiquidGlassUiKey
 import com.snuggle.music.viewmodels.MoodAndGenresViewModel
 import com.snuggle.music.viewmodels.ExploreViewModel
@@ -138,6 +138,8 @@ fun SearchScreen(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     val context = LocalContext.current
+    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val backdrop = com.snuggle.music.ui.component.LocalPlatformBackdrop.current
     var showVoiceSearchDialog by remember { mutableStateOf(false) }
     
     val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
@@ -361,12 +363,19 @@ fun SearchScreen(
                         }
                     },
                     colors = SearchBarDefaults.colors(
-                        containerColor = if (pureBlack) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = if (useLiquidGlassUi && backdrop != null) Color.Transparent else (if (pureBlack) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = searchBarHorizontalPadding)
                         .padding(top = searchBarTopPadding)
+                        .then(
+                            if (useLiquidGlassUi && backdrop != null && !searchActive) {
+                                Modifier.liquidGlass(backdrop = backdrop, shape = RoundedCornerShape(24.dp), interactive = false)
+                            } else {
+                                Modifier
+                            }
+                        )
                 ) {
                     if (showSearchContent) {
                         when (searchSource) {
