@@ -251,9 +251,9 @@ highlightKey: String? = null) {
             values = AudioQuality.values().filter { com.snuggle.music.constants.LOSSLESS_ENABLED || it != AudioQuality.LOSSLESS },
             valueText = {
                 when (it) {
-                    AudioQuality.OPUS -> "Low (Fastest, saves data)"
-                    AudioQuality.SAAVN -> "Medium (Balanced quality & speed)"
-                    AudioQuality.LOSSLESS -> "High (mp4a-LATM 320kbps, uses more data)"
+                    AudioQuality.OPUS -> "Low (Fastest, saves data - Opus)"
+                    AudioQuality.SAAVN -> "Medium (Optimal, balanced - Opus)"
+                    AudioQuality.LOSSLESS -> "High (mp4a-LATM 320kbps)"
                 }
             }
         )
@@ -271,9 +271,9 @@ highlightKey: String? = null) {
             values = com.snuggle.music.constants.DownloadQuality.values().filter { com.snuggle.music.constants.LOSSLESS_ENABLED || it != com.snuggle.music.constants.DownloadQuality.LOSSLESS },
             valueText = {
                 when (it) {
-                    com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "YouTube Music (AAC/Default)"
-                    com.snuggle.music.constants.DownloadQuality.SAAVN -> "Saavn (320kbps)"
-                    com.snuggle.music.constants.DownloadQuality.LOSSLESS -> "Lossless (Unavailable currently)"
+                    com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "YouTube Music (Standard)"
+                    com.snuggle.music.constants.DownloadQuality.SAAVN -> "YouTube Music (High Bitrate)"
+                    com.snuggle.music.constants.DownloadQuality.LOSSLESS -> "YouTube Music (mp4a-LATM 320kbps)"
                 }
             }
         )
@@ -372,9 +372,9 @@ highlightKey: String? = null) {
                     description = {
                         Text(
                             when (downloadQuality) {
-                                com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "YouTube Music (AAC/Default)"
-                                com.snuggle.music.constants.DownloadQuality.SAAVN -> "Saavn (320kbps)"
-                                com.snuggle.music.constants.DownloadQuality.LOSSLESS -> "Lossless (Unavailable currently)"
+                                com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "YouTube Music (Standard)"
+                                com.snuggle.music.constants.DownloadQuality.SAAVN -> "YouTube Music (High Bitrate)"
+                                com.snuggle.music.constants.DownloadQuality.LOSSLESS -> "YouTube Music (mp4a-LATM 320kbps)"
                             }
                         )
                     },

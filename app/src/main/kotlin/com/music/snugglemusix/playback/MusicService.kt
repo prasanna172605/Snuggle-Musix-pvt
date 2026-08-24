@@ -2643,13 +2643,12 @@ class MusicService :
             }
 
             if (!shouldBypassCache && !isFullyDownloaded && dbFormat != null) {
-                val isLosslessCache = dbFormat.codecs == "flac"
-                val isSaavnCache = dbFormat.codecs == "mp4a.40.2" || dbFormat.mimeType.contains("mp4", ignoreCase = true)
+                val isAacCache = dbFormat.mimeType.contains("mp4", ignoreCase = true) || dbFormat.mimeType.contains("m4a", ignoreCase = true)
                 
                 val cacheMatchesTarget = when (lockedQuality) {
-                    com.snuggle.music.constants.AudioQuality.LOSSLESS -> isLosslessCache
-                    com.snuggle.music.constants.AudioQuality.SAAVN -> isSaavnCache
-                    com.snuggle.music.constants.AudioQuality.OPUS -> !isLosslessCache && !isSaavnCache
+                    com.snuggle.music.constants.AudioQuality.LOSSLESS -> isAacCache
+                    com.snuggle.music.constants.AudioQuality.OPUS,
+                    com.snuggle.music.constants.AudioQuality.SAAVN -> !isAacCache
                 }
                 
                 if (!cacheMatchesTarget) {
@@ -2745,14 +2744,12 @@ class MusicService :
             run {
                 val format = nonNullPlayback.format
                 
-                val isFinalLossless = format.mimeType.contains("flac", ignoreCase = true)
-                val isFinalSaavn = format.mimeType.contains("mp4", ignoreCase = true) || format.mimeType.contains("m4a", ignoreCase = true)
+                val isFinalAac = format.mimeType.contains("mp4", ignoreCase = true) || format.mimeType.contains("m4a", ignoreCase = true)
                 
                 if (dbFormat != null && !shouldBypassCache) {
-                    val cacheIsLossless = dbFormat.codecs == "flac"
-                    val cacheIsSaavn = dbFormat.codecs == "mp4a.40.2" || dbFormat.mimeType.contains("mp4", ignoreCase = true)
+                    val cacheIsAac = dbFormat.mimeType.contains("mp4", ignoreCase = true) || dbFormat.mimeType.contains("m4a", ignoreCase = true)
                     
-                    if (isFinalLossless != cacheIsLossless || isFinalSaavn != cacheIsSaavn) {
+                    if (isFinalAac != cacheIsAac) {
                         Timber.tag(TAG).w("Format fallback detected AFTER fetch. Clearing playerCache to prevent mismatch crash.")
                         playerCache.removeResource(mediaId)
                         

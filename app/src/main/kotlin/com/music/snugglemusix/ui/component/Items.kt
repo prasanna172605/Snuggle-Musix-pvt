@@ -1834,39 +1834,7 @@ object Icon {
                 .padding(end = 2.dp)
         )
     }
-
 }
 
-@Composable
-fun rememberQobuzMatch(
-    id: String,
-    artist: String,
-    title: String,
-    durationMs: Long?,
-    audioQuality: com.snuggle.music.constants.AudioQuality,
-    cachedFlac: Boolean
-): androidx.compose.runtime.State<Boolean?> {
-    return androidx.compose.runtime.produceState<Boolean?>(initialValue = if (cachedFlac) true else null, id) {
-        if (cachedFlac) {
-            value = true
-            return@produceState
-        }
-        kotlinx.coroutines.delay(300) // Debounce fast scrolling
-        val qobuzClient = com.snuggle.music.utils.qobuz.QobuzApiClient()
-        var found = false
-        for (term in com.snuggle.music.utils.qobuzSearchTerms(artist, title)) {
-            val searchResult = runCatching { qobuzClient.search(term) }.getOrNull() ?: continue
-            val candidates = searchResult.tracks?.items.orEmpty()
-            if (candidates.isEmpty()) continue
-            val scored = candidates.map { it to com.snuggle.music.utils.confidence(artist, title, durationMs, it) }
-            val match = scored.filter { it.second >= 0.5f }.maxByOrNull { it.second }
-            if (match != null) {
-                found = true
-                break
-            }
-        }
-        value = found
-    }
-}
 
 
