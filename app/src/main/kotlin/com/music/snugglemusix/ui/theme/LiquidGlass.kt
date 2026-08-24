@@ -1,53 +1,34 @@
 package com.snuggle.music.ui.theme
 
-import android.graphics.RenderEffect
-import android.graphics.Shader
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.snuggle.music.ui.component.LocalPlatformBackdrop
+import com.snuggle.music.ui.component.liquidGlass as opticalLiquidGlass
 
+/**
+ * Compatibility bridge for liquidGlass modifier.
+ * Uses real optical backdrop-based refraction when a backdrop is present in CompositionLocal.
+ */
+@Composable
 fun Modifier.liquidGlass(
     shape: Shape,
     borderAlpha: Float = 0.22f,
     scrimAlpha: Float = 0.4f
-): Modifier = this.then(
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        Modifier
-            .graphicsLayer {
-                renderEffect = RenderEffect.createBlurEffect(
-                    30f, 30f, Shader.TileMode.CLAMP
-                ).asComposeRenderEffect()
-                clip = true
-                this.shape = shape
-            }
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.08f),
-                        Color.White.copy(alpha = 0.03f)
-                    )
-                ),
-                shape = shape
-            )
-            .border(
-                width = 1.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = borderAlpha),
-                        Color.White.copy(alpha = borderAlpha * 0.3f)
-                    )
-                ),
-                shape = shape
-            )
+): Modifier {
+    val backdrop = LocalPlatformBackdrop.current
+    return if (backdrop != null) {
+        this.opticalLiquidGlass(
+            backdrop = backdrop,
+            shape = shape,
+            interactive = false
+        )
     } else {
-        Modifier
+        this
             .background(
                 color = Color.Black.copy(alpha = scrimAlpha),
                 shape = shape
@@ -58,4 +39,4 @@ fun Modifier.liquidGlass(
                 shape = shape
             )
     }
-)
+}

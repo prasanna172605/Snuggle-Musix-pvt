@@ -3,13 +3,17 @@ package com.snuggle.music.ui.component
 import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +21,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -32,27 +38,29 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.lerp
+import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop as nativeBackdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.colorControls
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
 import com.kyant.backdrop.highlight.Highlight
-import com.kyant.backdrop.backdrops.LayerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
-import com.kyant.backdrop.backdrops.layerBackdrop as nativeBackdrop
+import com.kyant.backdrop.shadow.InnerShadow
+import com.kyant.backdrop.shadow.Shadow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.sign
-import androidx.compose.foundation.isSystemInDarkTheme
 
 typealias PlatformBackdrop = LayerBackdrop
 
 val LocalPlatformBackdrop = androidx.compose.runtime.staticCompositionLocalOf<PlatformBackdrop?> { null }
-
 
 fun Modifier.layerBackdrop(backdrop: PlatformBackdrop): Modifier = this.nativeBackdrop(backdrop)
 
@@ -105,7 +113,12 @@ fun Modifier.liquidGlass(
     backdrop: PlatformBackdrop,
     shape: Shape = CircleShape,
     interactive: Boolean = true,
-    highlight: Highlight = Highlight.Default,
+    highlight: Highlight = Highlight.Default.copy(alpha = 0.5f),
+    refractionHeight: Dp = 12.dp,
+    refractionAmount: Dp = 16.dp,
+    blurRadius: Dp = 16.dp,
+    minScrim: Float = 0.08f,
+    maxScrim: Float = 0.35f,
 ): Modifier {
     val isDark = isSystemInDarkTheme()
     val layer = rememberGraphicsLayer()
@@ -118,6 +131,11 @@ fun Modifier.liquidGlass(
         shape = shape,
         interaction = if (interactive) interaction else null,
         highlight = highlight,
+        refractionHeight = refractionHeight,
+        refractionAmount = refractionAmount,
+        blurRadius = blurRadius,
+        minScrim = minScrim,
+        maxScrim = maxScrim,
     )
 }
 
@@ -128,36 +146,48 @@ fun Modifier.drawInteractiveGlass(
     luminanceAnimation: Float,
     shape: Shape,
     interaction: GlassInteraction?,
-    pressedScale: Float = 1.05f,
-    highlight: Highlight = Highlight.Default,
-    blurScale: Float = 1.0f,
-    minScrim: Float = 0.12f,
-    maxScrim: Float = 0.5f,
+    pressedScale: Float = 0.96f,
+    highlight: Highlight = Highlight.Default.copy(alpha = 0.5f),
+    refractionHeight: Dp = 12.dp,
+    refractionAmount: Dp = 16.dp,
+    blurRadius: Dp = 16.dp,
+    minScrim: Float = 0.08f,
+    maxScrim: Float = 0.35f,
 ): Modifier =
     this
         .drawBackdrop(
             backdrop = backdrop,
             shape = { shape },
             highlight = { highlight },
+            shadow = {
+                val press = interaction?.pressProgress ?: 0f
+                Shadow(radius = (3f + 2f * press).dp, alpha = 0.25f + 0.15f * press)
+            },
+            innerShadow = {
+                val press = interaction?.pressProgress ?: 0f
+                InnerShadow(radius = (4f + 4f * press).dp, alpha = 0.35f + 0.25f * press)
+            },
             effects = {
                 val l = (luminanceAnimation * 2f - 1f).let { sign(it) * it * it }
                 val press = interaction?.pressProgress ?: 0f
                 vibrancy()
                 colorControls(
-                    brightness = 0.05f,
-                    contrast = 1f,
-                    saturation = 1.5f,
+                    brightness = 0.04f,
+                    contrast = 1.05f,
+                    saturation = 1.4f,
                 )
                 blur(
-                    (
-                        if (l > 0f) {
-                            lerp(8f.dp.toPx(), 16f.dp.toPx(), l)
-                        } else {
-                            lerp(8f.dp.toPx(), 2f.dp.toPx(), -l)
-                        }
-                    ) * blurScale + 2f.dp.toPx() * press,
+                    (if (l > 0f) {
+                        lerp(blurRadius.toPx() * 0.75f, blurRadius.toPx() * 1.25f, l)
+                    } else {
+                        lerp(blurRadius.toPx() * 0.75f, blurRadius.toPx() * 0.5f, -l)
+                    }) + 4f.dp.toPx() * press
                 )
-                lens(size.minDimension / 4f + 2f.dp.toPx() * press, size.minDimension / 2f, false)
+                lens(
+                    refractionHeight = (refractionHeight.toPx() + 4f.dp.toPx() * press).coerceAtMost(size.minDimension / 2.2f),
+                    refractionAmount = (refractionAmount.toPx() + 6f.dp.toPx() * press).coerceAtMost(size.minDimension),
+                    chromaticAberration = true
+                )
             },
             onDrawBackdrop = { drawBackdrop ->
                 drawBackdrop()
@@ -173,11 +203,11 @@ fun Modifier.drawInteractiveGlass(
                             Brush.radialGradient(
                                 colors =
                                     listOf(
-                                        Color.White.copy(alpha = 0.18f * press),
+                                        Color.White.copy(alpha = 0.22f * press),
                                         Color.Transparent,
                                     ),
                                 center = interaction?.touchPosition ?: Offset(size.width / 2f, size.height / 2f),
-                                radius = size.minDimension * 1.2f,
+                                radius = size.minDimension * 1.1f,
                             ),
                         blendMode = BlendMode.Plus,
                     )
@@ -200,6 +230,70 @@ fun Modifier.drawInteractiveGlass(
                 Modifier
             },
         )
+
+/**
+ * Optical Liquid Glass Icon Button that captures the backdrop behind it, applies optical lens refraction,
+ * vibrancy, backdrop blur, edge highlights, inner shadow, and dynamic adaptive scrim while rendering
+ * crisp, unblurred foreground icons/content directly on top.
+ */
+@Composable
+fun LiquidGlassIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    size: Dp = 48.dp,
+    enabled: Boolean = true,
+    shape: Shape = CircleShape,
+    refractionHeight: Dp = 12.dp,
+    refractionAmount: Dp = 16.dp,
+    blurRadius: Dp = 16.dp,
+    minScrim: Float = 0.08f,
+    maxScrim: Float = 0.35f,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val backdrop = LocalPlatformBackdrop.current
+    val isDark = isSystemInDarkTheme()
+    val interaction = rememberGlassInteraction()
+    val layer = rememberGraphicsLayer()
+
+    Box(
+        modifier = modifier
+            .size(size)
+            .alpha(if (enabled) 1f else 0.5f)
+            .clip(shape)
+            .clickable(
+                enabled = enabled,
+                onClick = onClick,
+                interactionSource = null,
+                indication = null
+            )
+            .then(
+                if (backdrop != null) {
+                    Modifier.drawInteractiveGlass(
+                        isDark = isDark,
+                        backdrop = backdrop,
+                        layer = layer,
+                        luminanceAnimation = 0.5f,
+                        shape = shape,
+                        interaction = if (enabled) interaction else null,
+                        pressedScale = 0.96f,
+                        highlight = Highlight.Default.copy(alpha = 0.55f),
+                        refractionHeight = refractionHeight,
+                        refractionAmount = refractionAmount,
+                        blurRadius = blurRadius,
+                        minScrim = minScrim,
+                        maxScrim = maxScrim
+                    )
+                } else {
+                    Modifier.alpha(1f)
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        CompositionLocalProvider(LocalContentColor provides (if (isDark) Color.White else Color.Black)) {
+            content()
+        }
+    }
+}
 
 internal suspend fun PointerInputScope.inspectDragGestures(
     onDragStart: (down: PointerInputChange) -> Unit = {},
