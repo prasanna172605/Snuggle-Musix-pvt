@@ -1,4 +1,4 @@
-﻿package com.snuggle.music.ui.component
+package com.snuggle.music.ui.component
 
 import android.os.Build
 import androidx.compose.foundation.background
@@ -52,7 +52,7 @@ fun LiquidGlassIconButton(
         Modifier
             .graphicsLayer {
                 renderEffect = android.graphics.RenderEffect.createBlurEffect(
-                    28f, 28f, android.graphics.Shader.TileMode.CLAMP
+                    35f, 35f, android.graphics.Shader.TileMode.CLAMP
                 ).asComposeRenderEffect()
                 clip = true
                 this.shape = shape
@@ -60,26 +60,45 @@ fun LiquidGlassIconButton(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.14f),
-                        Color.White.copy(alpha = 0.04f)
+                        Color.White.copy(alpha = 0.22f),
+                        Color.White.copy(alpha = 0.08f),
+                        Color(0xFF0F172A).copy(alpha = 0.35f)
                     )
                 ),
                 shape = shape
             )
             .border(
-                width = 0.8.dp,
-                brush = Brush.verticalGradient(
+                width = 1.2.dp,
+                brush = Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.35f),
-                        Color.White.copy(alpha = 0.08f)
+                        Color.White.copy(alpha = 0.75f),
+                        Color.White.copy(alpha = 0.25f),
+                        Color(0xFF38BDF8).copy(alpha = 0.40f)
                     )
                 ),
                 shape = shape
             )
     } else {
         Modifier
-            .background(color = Color.Black.copy(alpha = 0.38f), shape = shape)
-            .border(width = 0.8.dp, color = Color.White.copy(alpha = 0.22f), shape = shape)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.20f),
+                        Color(0xFF0F172A).copy(alpha = 0.40f)
+                    )
+                ),
+                shape = shape
+            )
+            .border(
+                width = 1.2.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.60f),
+                        Color.White.copy(alpha = 0.20f)
+                    )
+                ),
+                shape = shape
+            )
     }
 
     Box(

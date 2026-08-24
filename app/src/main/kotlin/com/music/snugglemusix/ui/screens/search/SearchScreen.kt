@@ -2,6 +2,8 @@
 
 package com.snuggle.music.ui.screens.search
 
+import com.snuggle.music.ui.theme.liquidGlass
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -363,15 +365,15 @@ fun SearchScreen(
                         }
                     },
                     colors = SearchBarDefaults.colors(
-                        containerColor = if (useLiquidGlassUi && backdrop != null) Color.Transparent else (if (pureBlack) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
+                        containerColor = if (useLiquidGlassUi) Color.Transparent else (if (pureBlack) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = searchBarHorizontalPadding)
                         .padding(top = searchBarTopPadding)
                         .then(
-                            if (useLiquidGlassUi && backdrop != null && !searchActive) {
-                                Modifier.liquidGlass(backdrop = backdrop, shape = RoundedCornerShape(24.dp), interactive = false)
+                            if (useLiquidGlassUi && !searchActive) {
+                                Modifier.liquidGlass(shape = RoundedCornerShape(24.dp))
                             } else {
                                 Modifier
                             }

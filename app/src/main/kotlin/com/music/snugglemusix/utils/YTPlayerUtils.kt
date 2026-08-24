@@ -1,4 +1,4 @@
-﻿
+
 
 package com.snuggle.music.utils
 
@@ -81,13 +81,15 @@ object YTPlayerUtils {
     private val poTokenGenerator = PoTokenGenerator()
 
     
-    private val MAIN_CLIENT: YouTubeClient = com.music.innertube.models.YouTubeClient.ANDROID_VR_1_43_32
+    private val MAIN_CLIENT: YouTubeClient = com.music.innertube.models.YouTubeClient.ANDROID_TESTSUITE
 
     private val METADATA_CLIENT: YouTubeClient = com.music.innertube.models.YouTubeClient.WEB_REMIX
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
-        com.music.innertube.models.YouTubeClient.ANDROID_VR_1_61_48,
+        com.music.innertube.models.YouTubeClient.ANDROID_MUSIC,
         com.music.innertube.models.YouTubeClient.WEB_REMIX,
+        com.music.innertube.models.YouTubeClient.ANDROID_VR_1_43_32,
+        com.music.innertube.models.YouTubeClient.ANDROID_VR_1_61_48,
         com.music.innertube.models.YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER,
         com.music.innertube.models.YouTubeClient.TVHTML5,
         com.music.innertube.models.YouTubeClient.ANDROID_CREATOR,
