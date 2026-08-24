@@ -131,9 +131,9 @@ import com.snuggle.music.ui.utils.isScrollingUp
 import com.snuggle.music.ui.utils.resize
 import com.snuggle.music.utils.listItemShape
 import com.snuggle.music.utils.rememberPreference
-import com.snuggle.music.ui.component.LiquidGlassIconButton
-import com.snuggle.music.ui.theme.liquidGlass
-import com.snuggle.music.constants.UseLiquidGlassUiKey
+
+
+
 import androidx.compose.foundation.shape.CircleShape
 import com.snuggle.music.viewmodels.ArtistViewModel
 import com.valentinilk.shimmer.shimmer

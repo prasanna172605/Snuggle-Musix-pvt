@@ -86,6 +86,8 @@ object YTPlayerUtils {
     private val METADATA_CLIENT: YouTubeClient = com.music.innertube.models.YouTubeClient.WEB_REMIX
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
+        com.music.innertube.models.YouTubeClient.IPADOS,
+        com.music.innertube.models.YouTubeClient.IOS,
         com.music.innertube.models.YouTubeClient.ANDROID_VR_1_61_48,
         com.music.innertube.models.YouTubeClient.ANDROID_VR_NO_AUTH,
         com.music.innertube.models.YouTubeClient.ANDROID_NO_SDK,
@@ -93,9 +95,7 @@ object YTPlayerUtils {
         com.music.innertube.models.YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER,
         com.music.innertube.models.YouTubeClient.TVHTML5,
         com.music.innertube.models.YouTubeClient.ANDROID_CREATOR,
-        com.music.innertube.models.YouTubeClient.IPADOS,
         com.music.innertube.models.YouTubeClient.MOBILE,
-        com.music.innertube.models.YouTubeClient.IOS,
         com.music.innertube.models.YouTubeClient.WEB,
         com.music.innertube.models.YouTubeClient.WEB_CREATOR
     )
@@ -531,35 +531,30 @@ object YTPlayerUtils {
     ): PlayerResponse.StreamingData.Format? {
         Timber.tag(logTag).d("Finding format with audioQuality: $audioQuality, network metered: ${connectivityManager.isActiveNetworkMetered}")
 
-        // Mapped dynamic stream selections
+        val formats = playerResponse.streamingData?.adaptiveFormats?.filter { it.isAudio && it.isOriginal } ?: emptyList()
+
         val format = when (audioQuality) {
             AudioQuality.OPUS -> {
-                // Low quality - Select lowest bitrate Opus codec (saves data, instant load)
-                playerResponse.streamingData?.adaptiveFormats
-                    ?.filter { it.isAudio && it.isOriginal && it.mimeType.contains("codecs=\"opus\"") }
-                    ?.minByOrNull { it.bitrate }
+                // Low quality: lowest bitrate Opus (or lowest bitrate audio)
+                formats.filter { it.mimeType.contains("opus") }.minByOrNull { it.bitrate }
+                    ?: formats.minByOrNull { it.bitrate }
             }
             AudioQuality.SAAVN -> {
-                // Medium quality - Select highest bitrate Opus codec (balanced quality & load speed)
-                playerResponse.streamingData?.adaptiveFormats
-                    ?.filter { it.isAudio && it.isOriginal && it.mimeType.contains("codecs=\"opus\"") }
-                    ?.maxByOrNull { it.bitrate }
+                // Balanced / Medium quality: highest bitrate Opus
+                formats.filter { it.mimeType.contains("opus") }.maxByOrNull { it.bitrate }
+                    ?: formats.maxByOrNull { it.bitrate }
             }
             AudioQuality.LOSSLESS -> {
-                // High quality - Force select mp4a-LATM 320kbps stream
-                playerResponse.streamingData?.adaptiveFormats
-                    ?.filter { it.isAudio && it.isOriginal && it.mimeType.startsWith("audio/mp4") }
-                    ?.maxByOrNull { it.bitrate }
+                // High quality: mp4a/AAC if present, otherwise highest bitrate Opus (160kbps+)
+                formats.filter { it.mimeType.startsWith("audio/mp4") }.maxByOrNull { it.bitrate }
+                    ?: formats.maxByOrNull { it.bitrate }
             }
         }
 
         if (format != null) {
             Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")
         } else {
-            // Fallback to highest available audio stream if none of the above matches
-            return playerResponse.streamingData?.adaptiveFormats
-                ?.filter { it.isAudio && it.isOriginal }
-                ?.maxByOrNull { it.bitrate }
+            return formats.maxByOrNull { it.bitrate }
         }
 
         return format
@@ -568,18 +563,18 @@ object YTPlayerUtils {
         Timber.tag(logTag).d("Validating stream URL status")
         try {
             val requestBuilder = okhttp3.Request.Builder()
-                .head()
+                .get()
                 .url(url)
-                .header("User-Agent", YouTubeClient.USER_AGENT_WEB)
+                .header("Range", "bytes=0-0")
 
-            
             YouTube.cookie?.let { cookie ->
                 requestBuilder.addHeader("Cookie", cookie)
             }
 
             val response = httpClient.newCall(requestBuilder.build()).execute()
-            val isSuccessful = response.isSuccessful
+            val isSuccessful = response.isSuccessful || response.code == 206
             Timber.tag(logTag).d("Stream URL validation result: ${if (isSuccessful) "Success" else "Failed"} (${response.code})")
+            response.close()
             return isSuccessful
         } catch (e: Exception) {
             Timber.tag(logTag).e(e, "Stream URL validation failed with exception")

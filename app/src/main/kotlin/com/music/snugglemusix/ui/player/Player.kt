@@ -73,7 +73,7 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import com.snuggle.music.ui.component.LiquidGlassIconButton
+
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -194,8 +194,8 @@ import com.snuggle.music.ui.component.LocalMenuState
 import com.snuggle.music.ui.component.Lyrics
 import com.snuggle.music.ui.component.PlayerSliderTrack
 import com.snuggle.music.ui.component.ResizableIconButton
-import com.snuggle.music.ui.component.LiquidGlassIconButton
-import com.snuggle.music.ui.theme.liquidGlass
+
+
 import com.snuggle.music.ui.component.SquigglySlider
 import com.snuggle.music.ui.component.WavySlider
 import com.snuggle.music.ui.component.rememberBottomSheetState
@@ -354,7 +354,7 @@ fun BottomSheetPlayer(
             playerConnection.player.removeListener(listener)
         }
     }
-    val useLiquidGlassUi by rememberPreference(com.snuggle.music.constants.UseLiquidGlassUiKey, defaultValue = true)
+    val useLiquidGlassUi = false
     val swipeLyrics by rememberPreference(SwipeLyricsKey, false)
     val enableLyricsThumbnailPlayPause by rememberPreference(EnableLyricsThumbnailPlayPauseKey, false)
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
@@ -1616,10 +1616,13 @@ fun BottomSheetPlayer(
                     ) {
                         AnimatedContent(targetState = showInlineLyrics, label = "DownloadButton") { showLyrics ->
                             if (showLyrics) {
-                                LiquidGlassIconButton(
-                                    onClick = { isFullScreen = !isFullScreen },
-                                    shape = shareShape,
-                                    modifier = Modifier.size(42.dp),
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(shareShape)
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                        .clickable { isFullScreen = !isFullScreen },
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.fullscreen),
@@ -1628,40 +1631,43 @@ fun BottomSheetPlayer(
                                     )
                                 }
                             } else {
-                                LiquidGlassIconButton(
-                                    onClick = {
-                                        mediaMetadata?.let { meta ->
-                                            when (download?.state) {
-                                                Download.STATE_COMPLETED, Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                                    DownloadService.sendRemoveDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        meta.id,
-                                                        false,
-                                                    )
-                                                }
-                                                else -> {
-                                                    database.transaction {
-                                                        insert(meta)
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(shareShape)
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                        .clickable {
+                                            mediaMetadata?.let { meta ->
+                                                when (download?.state) {
+                                                    Download.STATE_COMPLETED, Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                                                        DownloadService.sendRemoveDownload(
+                                                            context,
+                                                            ExoDownloadService::class.java,
+                                                            meta.id,
+                                                            false,
+                                                        )
                                                     }
-                                                    val downloadRequest =
-                                                        DownloadRequest
-                                                            .Builder(meta.id, meta.id.toUri())
-                                                            .setCustomCacheKey(meta.id)
-                                                            .setData(meta.title.toByteArray())
-                                                            .build()
-                                                    DownloadService.sendAddDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        downloadRequest,
-                                                        false,
-                                                    )
+                                                    else -> {
+                                                        database.transaction {
+                                                            insert(meta)
+                                                        }
+                                                        val downloadRequest =
+                                                            DownloadRequest
+                                                                .Builder(meta.id, meta.id.toUri())
+                                                                .setCustomCacheKey(meta.id)
+                                                                .setData(meta.title.toByteArray())
+                                                                .build()
+                                                        DownloadService.sendAddDownload(
+                                                            context,
+                                                            ExoDownloadService::class.java,
+                                                            downloadRequest,
+                                                            false,
+                                                        )
+                                                    }
                                                 }
                                             }
-                                        }
-                                    },
-                                    shape = shareShape,
-                                    modifier = Modifier.size(42.dp),
+                                        },
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     when (download?.state) {
                                         Download.STATE_COMPLETED -> {
@@ -1691,26 +1697,29 @@ fun BottomSheetPlayer(
                         AnimatedContent(targetState = showInlineLyrics, label = "LikeButton") { showLyrics ->
                             if (showLyrics) {
                                 val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
-                                LiquidGlassIconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            com.snuggle.music.ui.menu.LyricsMenu(
-                                                lyricsProvider = { currentLyrics },
-                                                songProvider = { currentSong?.song },
-                                                mediaMetadataProvider = { mediaMetadata },
-                                                onDismiss = menuState::dismiss,
-                                                onShowOffsetDialog = {
-                                                    bottomSheetPageState.show {
-                                                        ShowOffsetDialog(
-                                                            songProvider = { currentSong?.song }
-                                                        )
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(favShape)
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                        .clickable {
+                                            menuState.show {
+                                                com.snuggle.music.ui.menu.LyricsMenu(
+                                                    lyricsProvider = { currentLyrics },
+                                                    songProvider = { currentSong?.song },
+                                                    mediaMetadataProvider = { mediaMetadata },
+                                                    onDismiss = menuState::dismiss,
+                                                    onShowOffsetDialog = {
+                                                        bottomSheetPageState.show {
+                                                            ShowOffsetDialog(
+                                                                songProvider = { currentSong?.song }
+                                                            )
+                                                        }
                                                     }
-                                                }
-                                            )
-                                        }
-                                    },
-                                    shape = favShape,
-                                    modifier = Modifier.size(42.dp),
+                                                )
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_horiz),
@@ -1723,10 +1732,13 @@ fun BottomSheetPlayer(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    LiquidGlassIconButton(
-                                        onClick = playerConnection::toggleLike,
-                                        shape = middleShape,
-                                        modifier = Modifier.size(42.dp),
+                                    Box(
+                                        modifier = Modifier
+                                            .size(42.dp)
+                                            .clip(middleShape)
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                            .clickable { playerConnection.toggleLike() },
+                                        contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
                                             painter = painterResource(
@@ -1739,28 +1751,31 @@ fun BottomSheetPlayer(
                                         )
                                     }
 
-                                    LiquidGlassIconButton(
-                                        onClick = {
-                                            mediaMetadata?.let { meta ->
-                                                menuState.show {
-                                                    PlayerMenu(
-                                                        mediaMetadata = meta,
-                                                        navController = navController,
-                                                        playerBottomSheetState = state,
-                                                        onShowDetailsDialog = {
-                                                            meta.id.let { id ->
-                                                                bottomSheetPageState.show {
-                                                                    ShowMediaInfo(id)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(42.dp)
+                                            .clip(favShape)
+                                            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                            .clickable {
+                                                mediaMetadata?.let { meta ->
+                                                    menuState.show {
+                                                        PlayerMenu(
+                                                            mediaMetadata = meta,
+                                                            navController = navController,
+                                                            playerBottomSheetState = state,
+                                                            onShowDetailsDialog = {
+                                                                meta.id.let { id ->
+                                                                    bottomSheetPageState.show {
+                                                                        ShowMediaInfo(id)
+                                                                    }
                                                                 }
-                                                            }
-                                                        },
-                                                        onDismiss = menuState::dismiss
-                                                    )
+                                                            },
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        shape = favShape,
-                                        modifier = Modifier.size(42.dp),
+                                            },
+                                        contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_horiz),
@@ -2218,18 +2233,22 @@ fun BottomSheetPlayer(
                                 label = "nextButtonScale"
                             )
 
-                            LiquidGlassIconButton(
-                                onClick = playerConnection::seekToPrevious,
-                                enabled = canSkipPrevious && !isListenTogetherGuest,
-                                shape = CircleShape,
+                            Box(
                                 modifier = Modifier
                                     .size(68.dp)
-                                    .graphicsLayer { scaleX = backButtonScale; scaleY = backButtonScale }
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                    .clickable(enabled = canSkipPrevious && !isListenTogetherGuest) {
+                                        playerConnection.seekToPrevious()
+                                    }
+                                    .graphicsLayer { scaleX = backButtonScale; scaleY = backButtonScale },
+                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_previous),
                                     contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(32.dp),
+                                    tint = textButtonColor
                                 )
                             }
 
@@ -2252,66 +2271,68 @@ fun BottomSheetPlayer(
                                 label = "rotation"
                             )
 
-                            LiquidGlassIconButton(
-                                onClick = {
-                                    if (isListenTogetherGuest) {
-                                        playerConnection.toggleMute()
-                                        return@LiquidGlassIconButton
-                                    }
-                                    if (isCasting) {
-                                        if (castIsPlaying) {
-                                            castHandler?.pause()
-                                        } else {
-                                            castHandler?.play()
-                                        }
-                                    } else if (playbackState == STATE_ENDED) {
-                                        playerConnection.player.seekTo(0, 0)
-                                        playerConnection.player.playWhenReady = true
-                                    } else {
-                                        playerConnection.togglePlayPause()
-                                    }
-                                },
-                                shape = if (cookieIndent > 0f) WavyShape(9, cookieIndent, rotation) else CircleShape,
+                            Box(
                                 modifier = Modifier
                                     .size(84.dp)
-                                    .graphicsLayer { scaleX = playPauseScale; scaleY = playPauseScale }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(
-                                            if (isListenTogetherGuest) {
-                                                if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+                                    .clip(if (cookieIndent > 0f) WavyShape(9, cookieIndent, rotation) else CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
+                                    .clickable {
+                                        if (isListenTogetherGuest) {
+                                            playerConnection.toggleMute()
+                                            return@clickable
+                                        }
+                                        if (isCasting) {
+                                            if (castIsPlaying) {
+                                                castHandler?.pause()
                                             } else {
-                                                if (effectiveIsPlaying) R.drawable.pause else R.drawable.play
+                                                castHandler?.play()
                                             }
-                                        ),
-                                        contentDescription = if (isListenTogetherGuest) {
-                                            if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
+                                        } else if (playbackState == STATE_ENDED) {
+                                            playerConnection.player.seekTo(0, 0)
+                                            playerConnection.player.playWhenReady = true
                                         } else {
-                                            if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
-                                        },
-                                        modifier = Modifier.size(36.dp)
-                                    )
-                                }
+                                            playerConnection.togglePlayPause()
+                                        }
+                                    }
+                                    .graphicsLayer { scaleX = playPauseScale; scaleY = playPauseScale },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (isListenTogetherGuest) {
+                                            if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+                                        } else {
+                                            if (effectiveIsPlaying) R.drawable.pause else R.drawable.play
+                                        }
+                                    ),
+                                    contentDescription = if (isListenTogetherGuest) {
+                                        if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
+                                    } else {
+                                        if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
+                                    },
+                                    modifier = Modifier.size(36.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
                             }
 
                             Spacer(modifier = Modifier.width(24.dp))
 
-                            LiquidGlassIconButton(
-                                onClick = playerConnection::seekToNext,
-                                enabled = canSkipNext && !isListenTogetherGuest,
-                                shape = CircleShape,
+                            Box(
                                 modifier = Modifier
                                     .size(68.dp)
-                                    .graphicsLayer { scaleX = nextButtonScale; scaleY = nextButtonScale }
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
+                                    .clickable(enabled = canSkipNext && !isListenTogetherGuest) {
+                                        playerConnection.seekToNext()
+                                    }
+                                    .graphicsLayer { scaleX = nextButtonScale; scaleY = nextButtonScale },
+                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.skip_next),
                                     contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(32.dp),
+                                    tint = textButtonColor
                                 )
                             }
                         }

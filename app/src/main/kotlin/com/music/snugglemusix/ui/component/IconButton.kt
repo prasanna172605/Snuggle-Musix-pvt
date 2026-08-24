@@ -1,8 +1,6 @@
-package com.snuggle.music.ui.component
 
-import com.snuggle.music.constants.UseLiquidGlassUiKey
-import com.snuggle.music.utils.rememberPreference
-import com.snuggle.music.ui.component.LocalPlatformBackdrop
+
+package com.snuggle.music.ui.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -34,7 +32,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
-
 @Composable
 fun ResizableIconButton(
     @DrawableRes icon: Int,
@@ -44,37 +41,19 @@ fun ResizableIconButton(
     indication: Indication? = null,
     onClick: () -> Unit = {},
 ) {
-    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
-    val backdrop = LocalPlatformBackdrop.current
-    
-    if (useLiquidGlassUi && backdrop != null) {
-        LiquidGlassIconButton(
-            onClick = onClick,
-            modifier = modifier,
-            enabled = enabled,
-            shape = CircleShape
-        ) {
-            Image(
-                painter = painterResource(icon),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(Color.White)
+    Image(
+        painter = painterResource(icon),
+        contentDescription = null,
+        colorFilter = ColorFilter.tint(color),
+        modifier = modifier
+            .clickable(
+                indication = indication ?: ripple(bounded = false),
+                interactionSource = remember { MutableInteractionSource() },
+                enabled = enabled,
+                onClick = onClick,
             )
-        }
-    } else {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(color),
-            modifier = modifier
-                .clickable(
-                    indication = indication ?: ripple(bounded = false),
-                    interactionSource = remember { MutableInteractionSource() },
-                    enabled = enabled,
-                    onClick = onClick,
-                )
-                .alpha(if (enabled) 1f else 0.5f),
-        )
-    }
+            .alpha(if (enabled) 1f else 0.5f),
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -88,44 +67,26 @@ fun IconButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable () -> Unit,
 ) {
-    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
-    val backdrop = LocalPlatformBackdrop.current
-    
-    if (useLiquidGlassUi && backdrop != null) {
-        LiquidGlassIconButton(
-            onClick = onClick,
-            modifier = modifier,
-            enabled = enabled,
-            shape = CircleShape
-        ) {
-            val contentColor = Color.White
-            CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
-        }
-    } else {
-        Box(
-            modifier = modifier
-                .minimumInteractiveComponentSize()
-                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                .clip(CircleShape)
-                .background(color = colors.containerColor)
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick,
-                    enabled = enabled,
-                    role = Role.Button,
-                    interactionSource = interactionSource,
-                    indication = ripple(
-                        bounded = false,
-                        radius = 24.dp
-                    ),
+    Box(
+        modifier = modifier
+            .minimumInteractiveComponentSize()
+            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+            .clip(CircleShape)
+            .background(color = colors.containerColor)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+                enabled = enabled,
+                role = Role.Button,
+                interactionSource = interactionSource,
+                indication = ripple(
+                    bounded = false,
+                    radius = 24.dp
                 ),
-            contentAlignment = Alignment.Center,
-        ) {
-            val contentColor = colors.contentColor
-            CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
-        }
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        val contentColor = colors.contentColor
+        CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
     }
 }
-
-
-

@@ -1895,14 +1895,12 @@ fun Lyrics(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Liquid Glass Cancel button
-                LiquidGlassIconButton(
+                androidx.compose.material3.IconButton(
                     onClick = {
                         isSelectionModeActive = false
                         selectedIndices.clear()
                     },
-                    size = 44.dp,
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp)
+                    modifier = Modifier.size(44.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.close),
@@ -1911,8 +1909,7 @@ fun Lyrics(
                         tint = androidx.compose.ui.graphics.Color.White
                     )
                 }
-                // Liquid Glass Share button
-                LiquidGlassIconButton(
+                androidx.compose.material3.IconButton(
                     onClick = {
                         if (selectedIndices.isNotEmpty()) {
                             val sortedIndices = selectedIndices.sorted()
@@ -1933,7 +1930,7 @@ fun Lyrics(
                         }
                     },
                     enabled = selectedIndices.isNotEmpty(),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp)
+                    modifier = Modifier.size(44.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

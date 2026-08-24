@@ -2,7 +2,7 @@ package com.snuggle.music
 
 import com.snuggle.music.ui.component.rememberBackdrop
 import com.snuggle.music.ui.component.layerBackdrop
-import com.snuggle.music.ui.component.liquidGlass
+
 
 import com.snuggle.music.R
 import com.snuggle.music.BuildConfig
@@ -520,7 +520,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+        val useLiquidGlassUi = false
         echomusicTheme(
             darkTheme = if (useLiquidGlassUi) true else useDarkTheme,
             pureBlack = if (useLiquidGlassUi) true else pureBlack,
@@ -918,15 +918,7 @@ class MainActivity : ComponentActivity() {
                                         windowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Top),
                                         modifier = Modifier
                                             .then(
-                                                if (useLiquidGlassUi) {
-                                                    Modifier.liquidGlass(
-                                                        backdrop = backdrop,
-                                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp),
-                                                        interactive = false
-                                                    )
-                                                } else {
-                                                    Modifier
-                                                }
+                                                Modifier
                                             )
                                             .windowInsetsPadding(
                                             if (showRail) {

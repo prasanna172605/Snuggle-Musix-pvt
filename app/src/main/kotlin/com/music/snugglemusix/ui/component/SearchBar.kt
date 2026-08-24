@@ -63,7 +63,7 @@ import com.snuggle.music.constants.AppBarHeight
 
 import com.snuggle.music.constants.UseLiquidGlassUiKey
 import com.snuggle.music.ui.component.LocalPlatformBackdrop
-import com.snuggle.music.ui.theme.liquidGlass
+
 import com.snuggle.music.utils.rememberPreference
 
 @ExperimentalMaterial3Api
@@ -89,14 +89,10 @@ fun TopSearch(
     focusRequester: FocusRequester = remember { FocusRequester() },
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
-    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val useLiquidGlassUi = false
     val backdrop = LocalPlatformBackdrop.current
     val finalShape = shape ?: RoundedCornerShape(24.dp)
-    val glassModifier = if (useLiquidGlassUi && backdrop != null) {
-        Modifier.liquidGlass(backdrop = backdrop, shape = finalShape, interactive = false)
-    } else {
-        Modifier
-    }
+    val glassModifier = Modifier
 
     Box(modifier = modifier.then(glassModifier)) {
         TopAppBar(

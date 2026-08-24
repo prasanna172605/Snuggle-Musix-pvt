@@ -2,7 +2,7 @@
 
 package com.snuggle.music.ui.screens.search
 
-import com.snuggle.music.ui.theme.liquidGlass
+
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -94,8 +94,8 @@ import com.snuggle.music.playback.queues.YouTubeQueue
 import com.snuggle.music.ui.component.NavigationTitle
 import com.snuggle.music.utils.rememberEnumPreference
 import com.snuggle.music.utils.rememberPreference
-import com.snuggle.music.ui.component.LiquidGlassIconButton
-import com.snuggle.music.ui.component.liquidGlass
+
+
 import com.snuggle.music.constants.UseLiquidGlassUiKey
 import com.snuggle.music.viewmodels.MoodAndGenresViewModel
 import com.snuggle.music.viewmodels.ExploreViewModel
@@ -140,7 +140,7 @@ fun SearchScreen(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     val context = LocalContext.current
-    val (useLiquidGlassUi) = rememberPreference(UseLiquidGlassUiKey, defaultValue = true)
+    val useLiquidGlassUi = false
     val backdrop = com.snuggle.music.ui.component.LocalPlatformBackdrop.current
     var showVoiceSearchDialog by remember { mutableStateOf(false) }
     
@@ -372,11 +372,7 @@ fun SearchScreen(
                         .padding(horizontal = searchBarHorizontalPadding)
                         .padding(top = searchBarTopPadding)
                         .then(
-                            if (useLiquidGlassUi && !searchActive) {
-                                Modifier.liquidGlass(shape = RoundedCornerShape(24.dp))
-                            } else {
-                                Modifier
-                            }
+                            Modifier
                         )
                 ) {
                     if (showSearchContent) {
