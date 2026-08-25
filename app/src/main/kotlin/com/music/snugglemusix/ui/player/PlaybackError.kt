@@ -42,18 +42,15 @@ fun PlaybackError(
     
     
     
-    val isAgeRestricted = rawErrorMessage.contains("age", ignoreCase = true) ||
-            rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("LOGIN_REQUIRED", ignoreCase = true) ||
+    val isAgeRestricted = rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
             rawErrorMessage.contains("confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("403", ignoreCase = true) ||
-            rawErrorMessage.contains("Response code: 403", ignoreCase = true) ||
-            error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
-    
-    val errorMessage = if (isAgeRestricted) {
-        "This app does not support playing age-restricted songs. We are working on fixing this issue."
-    } else {
-        rawErrorMessage
+            (rawErrorMessage.contains("LOGIN_REQUIRED", ignoreCase = true) && rawErrorMessage.contains("age", ignoreCase = true))
+
+    val errorMessage = when {
+        isAgeRestricted -> "This track is age-restricted and requires authorization."
+        error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS || rawErrorMessage.contains("403", ignoreCase = true) ->
+            "Stream request rejected by content server. Switching to backup audio provider..."
+        else -> rawErrorMessage
     }
     
     Column(
