@@ -4,10 +4,11 @@ import com.snuggle.music.utils.PlaybackLogLevel
 import com.snuggle.music.utils.PlaybackLogManager
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 enum class PlaybackProviderAttempt {
-    YOUTUBE_IOS,
     YOUTUBE_IPADOS,
+    YOUTUBE_IOS,
     YOUTUBE_ANDROID_VR,
     YOUTUBE_TVHTML5,
     PIPEPIPE,
@@ -17,7 +18,8 @@ enum class PlaybackProviderAttempt {
 
 data class TrackPlaybackState(
     val videoId: String,
-    var currentAttempt: PlaybackProviderAttempt = PlaybackProviderAttempt.YOUTUBE_IOS,
+    val generationId: Long,
+    var currentAttempt: PlaybackProviderAttempt = PlaybackProviderAttempt.YOUTUBE_IPADOS,
     var activeStreamUrl: String? = null,
     val failedAttempts: MutableSet<PlaybackProviderAttempt> = ConcurrentHashMap.newKeySet(),
     val failedUrls: MutableSet<String> = ConcurrentHashMap.newKeySet()
@@ -26,23 +28,32 @@ data class TrackPlaybackState(
 object PlaybackCoordinator {
     private const val TAG = "PlaybackCoordinator"
 
+    private val activeGenerationId = AtomicLong(1)
+
     @Volatile
     private var currentTrackState: TrackPlaybackState? = null
 
     @Synchronized
     fun getOrCreateTrackState(videoId: String): TrackPlaybackState {
         val existing = currentTrackState
-        if (existing != null && existing.videoId == videoId) {
+        if (existing != null && existing.videoId == videoId && existing.generationId == activeGenerationId.get()) {
             return existing
         }
-        val newState = TrackPlaybackState(videoId)
+        val gen = activeGenerationId.incrementAndGet()
+        val newState = TrackPlaybackState(videoId, gen)
         currentTrackState = newState
-        Timber.tag(TAG).i("[PlaybackCoordinator] New playback track registered: $videoId")
+        Timber.tag(TAG).i("[PlaybackCoordinator] New playback generation registered: #$gen | video: $videoId")
         return newState
     }
 
     @Synchronized
     fun getCurrentTrackState(): TrackPlaybackState? = currentTrackState
+
+    @Synchronized
+    fun getActiveGenerationId(): Long = activeGenerationId.get()
+
+    @Synchronized
+    fun isGenerationActive(generationId: Long): Boolean = generationId == activeGenerationId.get()
 
     @Synchronized
     fun getCurrentAttempt(videoId: String): PlaybackProviderAttempt {
@@ -69,8 +80,8 @@ object PlaybackCoordinator {
         Timber.tag(TAG).e("[PlaybackCoordinator] Provider attempt $failedAttempt FAILED for $videoId ($reason)")
 
         val nextAttempt = when (failedAttempt) {
-            PlaybackProviderAttempt.YOUTUBE_IOS -> PlaybackProviderAttempt.YOUTUBE_IPADOS
-            PlaybackProviderAttempt.YOUTUBE_IPADOS -> PlaybackProviderAttempt.YOUTUBE_ANDROID_VR
+            PlaybackProviderAttempt.YOUTUBE_IPADOS -> PlaybackProviderAttempt.YOUTUBE_IOS
+            PlaybackProviderAttempt.YOUTUBE_IOS -> PlaybackProviderAttempt.YOUTUBE_ANDROID_VR
             PlaybackProviderAttempt.YOUTUBE_ANDROID_VR -> PlaybackProviderAttempt.YOUTUBE_TVHTML5
             PlaybackProviderAttempt.YOUTUBE_TVHTML5 -> PlaybackProviderAttempt.PIPEPIPE
             PlaybackProviderAttempt.PIPEPIPE -> PlaybackProviderAttempt.BRAVEPIPE
@@ -100,8 +111,10 @@ object PlaybackCoordinator {
     }
 
     @Synchronized
-    fun resetForNewTrack(videoId: String) {
-        currentTrackState = TrackPlaybackState(videoId)
-        Timber.tag(TAG).i("[PlaybackCoordinator] Reset coordinator state for new track: $videoId")
+    fun resetForNewTrack(videoId: String): Long {
+        val gen = activeGenerationId.incrementAndGet()
+        currentTrackState = TrackPlaybackState(videoId, gen)
+        Timber.tag(TAG).i("[PlaybackCoordinator] Reset coordinator state for new track: $videoId (generation #$gen)")
+        return gen
     }
 }
