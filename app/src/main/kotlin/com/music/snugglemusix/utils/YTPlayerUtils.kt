@@ -106,7 +106,7 @@ object YTPlayerUtils {
         val format: PlayerResponse.StreamingData.Format,
         val streamUrl: String,
         val streamExpiresInSeconds: Int,
-        val isSaavnStream: Boolean = false,
+        
     )
     
     suspend fun playerResponseForPlayback(
@@ -124,8 +124,8 @@ object YTPlayerUtils {
             it.dataStore.data.first()[com.snuggle.music.constants.ShowAudioFallbackToastKey] 
         } ?: true
 
-        var hasShownLosslessToast = false
-        var hasShownSaavnToast = false
+        
+        
         var hasShownOpusToast = false
 
         suspend fun tryOpus(): Result<PlaybackData> {
@@ -142,18 +142,12 @@ object YTPlayerUtils {
             return firstAttempt
         }
 
-        // Route by audio quality preference:
-        // OPUS (Low)     -> YouTube Opus lowest bitrate (fastest, saves data)
-        // SAAVN (Medium) -> YouTube Opus highest bitrate (balanced quality & speed)
-        // LOSSLESS (High)-> YouTube mp4a-LATM 320kbps (high quality)
-        Timber.tag(TAG).d("Routing audio for quality=$audioQuality, videoId=$videoId")
-        return when (audioQuality) {
-            AudioQuality.OPUS, AudioQuality.SAAVN -> tryOpus()
-            AudioQuality.LOSSLESS -> {
-                val highResult = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
-                if (highResult.isSuccess) highResult else tryOpus()
-            }
-        }
+        // YouTube Audio Quality Selection:
+        // OPUS     -> YouTube Opus stream (itag 249/250/251 WebM)
+        // SAAVN    -> YouTube Opus stream (High Bitrate / Balanced)
+        // LOSSLESS -> YouTube High Quality stream (AAC / Highest Bitrate)
+        Timber.tag(TAG).d("Routing YouTube audio for quality=$audioQuality, videoId=$videoId")
+        return tryOpus()
     }
 
     private suspend fun resolvePlaybackData(
