@@ -269,3 +269,16 @@ replace_remaining.ps1
 retry_gms_upload.ps1
 run_logs.txt
 *.local.ps1
+
+# Scripts, temporary dumps and binaries
+gh_bin/
+jiosaavn/
+musixmatch/
+scratch/
+*.py
+*.txt
+*.template
+README_remote.md
+RELEASE_INFO_remote.md
+release_notes_temp.md
+snugglemusix.apk
