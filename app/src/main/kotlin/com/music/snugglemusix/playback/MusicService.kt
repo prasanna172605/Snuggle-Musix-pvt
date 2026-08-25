@@ -2640,8 +2640,9 @@ class MusicService :
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
+        val chunkLength = 10 * 512 * 1024L // Echo 5 MiB sustainable chunk
         return ResolvingDataSource.Factory(
-            DefaultDataSource.Factory(this, createCacheDataSource())
+            createCacheDataSource()
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
             if (mediaId.isLocalMediaId()) {
@@ -2826,7 +2827,7 @@ class MusicService :
                 songUrlCache["${mediaId}_${lockedQuality.name}"] =
                     streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
                 
-                return@Factory dataSpec.withUri(streamUrl.toUri())
+                return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
             }
         }
     }
