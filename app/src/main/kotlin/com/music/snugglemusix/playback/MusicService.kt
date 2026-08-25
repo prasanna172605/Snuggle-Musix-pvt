@@ -2665,15 +2665,7 @@ class MusicService :
                 .takeIf { it != androidx.media3.common.C.LENGTH_UNSET.toLong() } ?: dbFormat?.contentLength ?: -1L
             val isFullyDownloaded = cachedLength > 0 && downloadCache.isCached(mediaId, 0, cachedLength)
             
-            val lockedQuality = if (isCurrentlyPlaying && dbFormat != null) {
-                when {
-                    dbFormat.mimeType.contains("flac", ignoreCase = true) -> com.snuggle.music.constants.AudioQuality.LOSSLESS
-                    dbFormat.mimeType.contains("mp4", ignoreCase = true) || dbFormat.mimeType.contains("m4a", ignoreCase = true) -> com.snuggle.music.constants.AudioQuality.SAAVN
-                    else -> com.snuggle.music.constants.AudioQuality.OPUS
-                }
-            } else {
-                audioQuality
-            }
+            val lockedQuality = audioQuality
 
             if (!shouldBypassCache && !isFullyDownloaded && dbFormat != null) {
                 val isAacCache = dbFormat.mimeType.contains("mp4", ignoreCase = true) || dbFormat.mimeType.contains("m4a", ignoreCase = true)
