@@ -668,7 +668,7 @@ object YTPlayerUtils {
 
         
         Timber.tag(logTag).d("Trying StreamInfo fallback for URL")
-        val streamUrls = YouTube.getNewPipeStreamUrls(videoId)
+        val streamUrls = com.music.innertube.NewPipeExtractor.newPipePlayer(videoId)
         if (streamUrls.isNotEmpty()) {
             val streamUrl = streamUrls.find { it.first == format.itag }?.second
             if (streamUrl != null) {

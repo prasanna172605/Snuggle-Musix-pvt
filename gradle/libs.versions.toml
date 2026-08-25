@@ -1,4 +1,8 @@
 [versions]
+brave-newpipe = "fa5d4a8b4c"
+pipepipe = "208e43b184"
+ksoup = "0.6.0"
+
 liquid-glass = "1.0.6"
 liquid-glass-shapes = "1.2.0"
 
@@ -54,6 +58,11 @@ googleDriveApi = "v3-rev20260428-2.0.0"
 browser = "1.8.0"
 
 [libraries]
+brave-extractor = { module = "com.github.maxrave-dev:BravePipeExtractor", version.ref = "brave-newpipe" }
+pipepipe-extractor = { module = "com.github.maxrave-dev.PipePipeExtractor:extractor", version.ref = "pipepipe" }
+ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup" }
+ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
+
 liquid-glass = { module = "io.github.kyant0:backdrop", version.ref = "liquid-glass" }
 liquid-glass-shape = { module = "io.github.kyant0:shapes", version.ref = "liquid-glass-shapes" }
 

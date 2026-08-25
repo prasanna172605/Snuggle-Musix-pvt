@@ -23,14 +23,23 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.timber)
+    implementation(libs.pipepipe.extractor)
+    implementation(libs.brave.extractor)
+    implementation(libs.ksoup.html)
+    implementation(libs.ksoup.entities)
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
-    implementation(libs.newpipeextractor)
     testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)
+}
+
+configurations.all {
+    exclude(group = "com.google.protobuf", module = "protobuf-java")
 }
