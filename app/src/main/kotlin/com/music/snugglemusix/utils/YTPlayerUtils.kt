@@ -51,6 +51,21 @@ object YTPlayerUtils {
     private const val TAG = "YTPlayerUtils"
     private val requestIdGenerator = java.util.concurrent.atomic.AtomicLong(1)
 
+    // Tracks failed client/strategy attempts per videoId to prevent retrying the same failed stream
+    private val failedClientsPerVideo = java.util.concurrent.ConcurrentHashMap<String, MutableSet<String>>()
+
+    fun markClientFailedForVideo(videoId: String, clientIdentifier: String) {
+        val set = failedClientsPerVideo.computeIfAbsent(videoId) { java.util.concurrent.ConcurrentHashMap.newKeySet() }
+        set.add(clientIdentifier)
+        PlaybackLogManager.log(PlaybackLogLevel.WARNING, "[Fallback State]", "Marked FAILED for $videoId: $clientIdentifier")
+        Timber.tag(TAG).w("[Fallback State] Marked client $clientIdentifier as failed for $videoId. Total failed: ${set.size}")
+    }
+
+    fun clearFailedClientsForVideo(videoId: String) {
+        failedClientsPerVideo.remove(videoId)
+    }
+
+
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .dns(object : Dns {
             override fun lookup(hostname: String): List<InetAddress> {
@@ -300,8 +315,14 @@ object YTPlayerUtils {
                 Timber.tag(logTag).d("Trying fallback client ${clientIndex + 1}/${STREAM_FALLBACK_CLIENTS.size}: ${client.clientName}")
                 PlaybackLogManager.log(PlaybackLogLevel.DEBUG, "Trying fallback [${clientIndex + 1}/${STREAM_FALLBACK_CLIENTS.size}]", client.clientName)
 
+                val clientKey = client.clientName
+                val failedSet = failedClientsPerVideo[videoId]
+                if (failedSet?.contains(clientKey) == true) {
+                    Timber.tag(logTag).d("[Fallback State] Skipping previously failed client $clientKey for $videoId")
+                    continue
+                }
+
                 if (client.loginRequired && !isLoggedIn && YouTube.cookie == null) {
-                    
                     Timber.tag(logTag).d("Skipping client ${client.clientName} - requires login but user is not logged in")
                     continue
                 }

@@ -2399,8 +2399,24 @@ class MusicService :
         }
 
         val currentRetries = currentMediaIdRetryCount[mediaId] ?: 0
-        if (currentRetries >= 2) {
-            Timber.tag(TAG).w("[PlaybackFallback] Max retries reached for $mediaId ($currentRetries). Stopping loop on 403.")
+        incrementRetryCount(mediaId)
+
+        // 1. Invalidate failed URL from memory cache & disk cache
+        songUrlCache.remove("${mediaId}_${audioQuality.name}")
+        performAggressiveCacheClear(mediaId)
+        Timber.tag(TAG).w("[PlaybackFallback] HTTP 403 on $mediaId: invalidating current client and advancing to next strategy")
+
+        // 2. Mark current client strategy failed so YTPlayerUtils advances down the fallback ladder
+        try {
+            val failedClient = if (currentRetries == 0) "IPADOS" else if (currentRetries == 1) "IOS" else "ANDROID_VR"
+            YTPlayerUtils.markClientFailedForVideo(mediaId, failedClient)
+            YTPlayerUtils.forceRefreshForVideo(mediaId)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to clear decryption caches")
+        }
+
+        if (currentRetries >= 3) {
+            Timber.tag(TAG).w("[PlaybackFallback] Exhausted all YouTube client strategies for $mediaId. Stopping loop.")
             markSongAsFailed(mediaId)
             if (dataStore.get(AutoSkipNextOnErrorKey, false)) {
                 skipOnError()
@@ -2410,17 +2426,6 @@ class MusicService :
             return
         }
 
-        incrementRetryCount(mediaId)
-
-        songUrlCache.remove("${mediaId}_${audioQuality.name}")
-        Timber.tag(TAG).d("Cleared cached URL for $mediaId")
-
-        try {
-            YTPlayerUtils.forceRefreshForVideo(mediaId)
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches")
-        }
-
         retryJob?.cancel()
         retryJob = scope.launch {
             val currentPosition = player.currentPosition
@@ -2428,7 +2433,7 @@ class MusicService :
             player.seekTo(currentIndex, currentPosition)
             player.prepare()
 
-            Timber.tag(TAG).d("[PlaybackFallback] Retrying playback for $mediaId after 403 (Attempt ${currentRetries + 1}/2)")
+            Timber.tag(TAG).d("[PlaybackFallback] Re-preparing Media3 for $mediaId with advanced client (Attempt ${currentRetries + 1}/3)")
         }
     }
 
