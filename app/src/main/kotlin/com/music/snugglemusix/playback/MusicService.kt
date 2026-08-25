@@ -2131,7 +2131,27 @@ class MusicService :
         }
 
         val mediaId = player.currentMediaItem?.mediaId
-        Timber.tag(TAG).w(error, "Player error occurred for $mediaId: errorCode=${error.errorCode}, message=${error.message}")
+        val httpCode = getHttpResponseCode(error)
+        val causeChain = buildString {
+            var curr: Throwable? = error.cause
+            while (curr != null) {
+                if (length > 0) append(" -> ")
+                append(curr::class.simpleName).append(": ").append(curr.message)
+                curr = curr.cause
+            }
+        }
+        Timber.tag(TAG).e("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Timber.tag(TAG).e("[Media3Error] videoId=$mediaId, errorCode=${error.errorCode}, errorCodeName=${error.errorCodeName}, httpStatus=$httpCode")
+        Timber.tag(TAG).e("[Media3Error] message=${error.message}")
+        Timber.tag(TAG).e("[Media3Error] causeChain=$causeChain")
+        Timber.tag(TAG).e("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        
+        com.snuggle.music.utils.PlaybackLogManager.log(
+            com.snuggle.music.utils.PlaybackLogLevel.ERROR,
+            "[Media3Error] HTTP ${httpCode ?: error.errorCode}",
+            "Video: $mediaId | Cause: ${error.cause?.message ?: error.message}"
+        )
+
         val isFallbackError = error.message?.contains("fallback", ignoreCase = true) == true
         if (!isFallbackError) {
             reportException(error)
@@ -2378,13 +2398,23 @@ class MusicService :
             return
         }
 
+        val currentRetries = currentMediaIdRetryCount[mediaId] ?: 0
+        if (currentRetries >= 2) {
+            Timber.tag(TAG).w("[PlaybackFallback] Max retries reached for $mediaId ($currentRetries). Stopping loop on 403.")
+            markSongAsFailed(mediaId)
+            if (dataStore.get(AutoSkipNextOnErrorKey, false)) {
+                skipOnError()
+            } else {
+                stopOnError()
+            }
+            return
+        }
+
         incrementRetryCount(mediaId)
 
-        
         songUrlCache.remove("${mediaId}_${audioQuality.name}")
         Timber.tag(TAG).d("Cleared cached URL for $mediaId")
 
-        
         try {
             YTPlayerUtils.forceRefreshForVideo(mediaId)
         } catch (e: Exception) {
@@ -2393,14 +2423,12 @@ class MusicService :
 
         retryJob?.cancel()
         retryJob = scope.launch {
-
-            
             val currentPosition = player.currentPosition
             val currentIndex = player.currentMediaItemIndex
             player.seekTo(currentIndex, currentPosition)
             player.prepare()
 
-            Timber.tag(TAG).d("Retrying playback for $mediaId after 403 error")
+            Timber.tag(TAG).d("[PlaybackFallback] Retrying playback for $mediaId after 403 (Attempt ${currentRetries + 1}/2)")
         }
     }
 

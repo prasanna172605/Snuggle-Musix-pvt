@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.first
 object YTPlayerUtils {
     private const val logTag = "YTPlayerUtils"
     private const val TAG = "YTPlayerUtils"
+    private val requestIdGenerator = java.util.concurrent.atomic.AtomicLong(1)
 
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .dns(object : Dns {
@@ -156,8 +157,9 @@ object YTPlayerUtils {
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
     ): Result<PlaybackData> = runCatching {
-        Timber.tag(logTag).d("Fetching player response for videoId: $videoId, playlistId: $playlistId")
-        PlaybackLogManager.log(PlaybackLogLevel.INFO, "Resolving playback data", "Video: $videoId")
+        val reqId = requestIdGenerator.getAndIncrement()
+        Timber.tag(logTag).d("[PlaybackResolve] requestId=$reqId videoId=$videoId playlistId=$playlistId")
+        PlaybackLogManager.log(PlaybackLogLevel.INFO, "[PlaybackResolve #$reqId]", "Video: $videoId")
         
         
         val isUploadedTrack = playlistId == "MLPT" || playlistId?.contains("MLPT") == true
@@ -420,7 +422,7 @@ object YTPlayerUtils {
                 if (validateStatus(streamUrl!!)) {
                     
                     Timber.tag(logTag).d("Stream validated successfully with client: ${currentClient.clientName}")
-                    PlaybackLogManager.log(PlaybackLogLevel.INFO, "Stream validated", currentClient.clientName)
+                    PlaybackLogManager.log(PlaybackLogLevel.INFO, "[Stream #$reqId Validated]", "${currentClient.clientName} (itag ${format.itag})")
                     
                     Log.i(TAG, "Playback: client=${currentClient.clientName}, videoId=$videoId")
                     break
