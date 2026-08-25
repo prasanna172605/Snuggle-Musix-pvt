@@ -850,12 +850,18 @@ private fun WordLevelCanvasLyrics(
                                 val glowAlpha = (0.35f * impactFactor).coerceIn(0f, 0.4f)
                                 val baseGlowRadius = 12.dp.toPx() * impactFactor                                                                                    
                                 drawIntoCanvas { canvas ->
-                                    glowPaint.maskFilter =
-                                        BlurMaskFilter(baseGlowRadius, BlurMaskFilter.Blur.NORMAL)
-                                    glowPaint.color = expressiveAccent.copy(alpha = glowAlpha).toArgb()
-                                    glowPaint.textSize = lyricStyle.fontSize.toPx()
-                                    glowPaint.typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-                                    canvas.nativeCanvas.drawText(letterLayouts[i].layoutInput.text.text, 0f, letterLayouts[i].firstBaseline, glowPaint)
+                                    val nativeCanvas = canvas.nativeCanvas
+                                    val saveCount = nativeCanvas.save()
+                                    try {
+                                        glowPaint.maskFilter =
+                                            BlurMaskFilter(baseGlowRadius, BlurMaskFilter.Blur.NORMAL)
+                                        glowPaint.color = expressiveAccent.copy(alpha = glowAlpha).toArgb()
+                                        glowPaint.textSize = lyricStyle.fontSize.toPx()
+                                        glowPaint.typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+                                        nativeCanvas.drawText(letterLayouts[i].layoutInput.text.text, 0f, letterLayouts[i].firstBaseline, glowPaint)
+                                    } finally {
+                                        nativeCanvas.restoreToCount(saveCount)
+                                    }
                                 }
                             }
                         }
