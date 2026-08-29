@@ -22,6 +22,8 @@ import coil3.toBitmap
 import com.snuggle.music.MainActivity
 import com.snuggle.music.R
 import com.snuggle.music.db.MusicDatabase
+import com.snuggle.music.utils.dataStore
+import com.snuggle.music.utils.get
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -449,7 +451,9 @@ class SnuggleMusixWidgetManager @Inject constructor(
     }
 
     private fun getDefaultArtwork(size: Int): Bitmap {
-        val drawable = context.getDrawable(R.drawable.ic_launcher_nobg)
+        val useLegacy = context.dataStore.get(com.snuggle.music.constants.EnableLegacyIconKey, true)
+        val resId = if (useLegacy) R.drawable.ic_legacy_nobg else R.drawable.ic_launcher_nobg
+        val drawable = context.getDrawable(resId)
             ?: context.packageManager.getApplicationIcon(context.packageName)
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)

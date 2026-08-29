@@ -150,6 +150,10 @@ highlightKey: String? = null) {
         com.snuggle.music.constants.EnableHighRefreshRateKey,
         defaultValue = true
     )
+    val (enableLegacyIcon, onEnableLegacyIconChange) = rememberPreference(
+        com.snuggle.music.constants.EnableLegacyIconKey,
+        defaultValue = true
+    )
     val (selectedThemeColorInt) = rememberPreference(
         SelectedThemeColorKey,
         defaultValue = DefaultThemeColor.toArgb()
@@ -988,6 +992,36 @@ highlightKey: String? = null) {
                         title = { Text(stringResource(R.string.theme)) },
                         description = { Text(stringResource(R.string.theme_desc)) },
                         onClick = { navController.navigate("settings/appearance/theme") }
+                    )
+                )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(if (enableLegacyIcon) R.drawable.ic_legacy_nobg else R.drawable.ic_launcher_nobg),
+                        title = { Text("Legacy Icon") },
+                        description = { Text("Use previous bird holding music symbol logo all over the app, notifications, and widgets") },
+                        trailingContent = {
+                            Switch(
+                                checked = enableLegacyIcon,
+                                onCheckedChange = { isChecked ->
+                                    onEnableLegacyIconChange(isChecked)
+                                    com.snuggle.music.utils.IconUtils.setIcon(context, isChecked)
+                                },
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (enableLegacyIcon) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = {
+                            val newValue = !enableLegacyIcon
+                            onEnableLegacyIconChange(newValue)
+                            com.snuggle.music.utils.IconUtils.setIcon(context, newValue)
+                        }
                     )
                 )
                 add(

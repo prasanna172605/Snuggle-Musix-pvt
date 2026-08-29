@@ -195,6 +195,12 @@ private fun AboutAppCard() {
                 label = "scale"
             )
 
+            val (enableLegacyIcon) = com.snuggle.music.utils.rememberPreference(
+                com.snuggle.music.constants.EnableLegacyIconKey,
+                defaultValue = true
+            )
+            val logoDrawable = if (enableLegacyIcon) R.drawable.ic_legacy_nobg else R.drawable.ic_launcher_foreground
+
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -215,13 +221,13 @@ private fun AboutAppCard() {
             ) {
                 if (rotation <= 90f) {
                     Image(
-                        painter = painterResource(R.drawable.ic_launcher_foreground),
+                        painter = painterResource(logoDrawable),
                         contentDescription = "Snuggle Musix Logo",
                         modifier = Modifier.fillMaxSize().clip(CircleShape)
                     )
                 } else {
                     Image(
-                        painter = painterResource(R.drawable.ic_launcher_foreground),
+                        painter = painterResource(logoDrawable),
                         contentDescription = "Snuggle Musix Logo",
                         modifier = Modifier
                             .fillMaxSize()

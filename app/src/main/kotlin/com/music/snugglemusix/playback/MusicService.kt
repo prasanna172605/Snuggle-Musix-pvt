@@ -138,6 +138,8 @@ import com.snuggle.music.eq.data.EQProfileRepository
 import com.snuggle.music.extensions.SilentHandler
 import com.snuggle.music.extensions.collect
 import com.snuggle.music.extensions.collectLatest
+import com.snuggle.music.utils.dataStore
+import com.snuggle.music.utils.get
 import com.snuggle.music.extensions.currentMetadata
 import com.snuggle.music.extensions.findNextMediaItemById
 import com.snuggle.music.extensions.mediaItems
@@ -449,6 +451,9 @@ class MusicService :
         // empty media controls before playback has even started. MediaNotificationProvider will
         // gracefully handle posting the real notification when playback truly begins.
 
+        val useLegacy = dataStore.get(com.snuggle.music.constants.EnableLegacyIconKey, true)
+        val notifIcon = if (useLegacy) R.drawable.ic_legacy_nobg else R.drawable.ic_launcher_nobg
+
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
                 this,
@@ -457,7 +462,7 @@ class MusicService :
                 R.string.music_player
             )
                 .apply {
-                    setSmallIcon(R.drawable.ic_launcher_nobg)
+                    setSmallIcon(notifIcon)
                 },
         )
         player = createExoPlayer()
