@@ -106,15 +106,13 @@ constructor(
 
             val playbackData = runBlocking(Dispatchers.IO) {
                 YTPlayerUtils.playerResponseForPlayback(
-                    mediaId,
+                    videoId = mediaId,
                     audioQuality = when (downloadQuality) {
                         com.snuggle.music.constants.DownloadQuality.LOSSLESS -> AudioQuality.LOSSLESS
                         com.snuggle.music.constants.DownloadQuality.SAAVN -> AudioQuality.SAAVN
                         else -> AudioQuality.OPUS
                     },
                     connectivityManager = connectivityManager,
-                    context = context,
-                    isDownload = true
                 )
             }.getOrThrow()
             val format = playbackData.format

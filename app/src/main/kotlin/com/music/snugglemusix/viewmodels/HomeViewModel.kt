@@ -524,20 +524,38 @@ class HomeViewModel @Inject constructor(
             launch(Dispatchers.IO) {
                 // Fetch home page feed
                 val homeResult = YouTube.home()
-                // Fetch Tamil hits as search summaries to inject into the Home feed (without changing UI language!)
-                val tamilSearch = YouTube.searchSummary("Tamil Hits").getOrNull()
-                val customTamilSections = tamilSearch?.summaries?.mapNotNull { summary ->
-                    if (summary.items.isEmpty()) null else {
-                        com.music.innertube.pages.HomePage.Section(
-                            title = "Tamil " + summary.title,
-                            label = "Trending",
-                            thumbnail = null,
-                            endpoint = null,
-                            items = summary.items
-                                .filterExplicit(hideExplicit)
-                                .filterVideoSongs(hideVideoSongs)
-                                .filterYoutubeShorts(hideYoutubeShorts)
-                        )
+                
+                // Determine user's listening history/taste
+                val events = database.events().first()
+                val topArtists = database.mostPlayedArtists(10).first()
+                
+                val starterQuery = if (events.isEmpty() && topArtists.isEmpty()) {
+                    "Tamil Hits"
+                } else {
+                    // Adapt to user's favorite artists/tastes (Hindi, English, Tamil, etc.)
+                    val primaryArtist = topArtists.firstOrNull()?.title
+                    if (!primaryArtist.isNullOrBlank()) {
+                        "$primaryArtist Hits"
+                    } else {
+                        null
+                    }
+                }
+
+                val customTasteSections = starterQuery?.let { query ->
+                    val searchRes = YouTube.searchSummary(query).getOrNull()
+                    searchRes?.summaries?.mapNotNull { summary ->
+                        if (summary.items.isEmpty()) null else {
+                            com.music.innertube.pages.HomePage.Section(
+                                title = if (events.isEmpty()) "Tamil " + summary.title else "${summary.title} For You",
+                                label = if (events.isEmpty()) "Trending" else "Recommended",
+                                thumbnail = null,
+                                endpoint = null,
+                                items = summary.items
+                                    .filterExplicit(hideExplicit)
+                                    .filterVideoSongs(hideVideoSongs)
+                                    .filterYoutubeShorts(hideYoutubeShorts)
+                            )
+                        }
                     }
                 } ?: emptyList()
 
@@ -549,9 +567,9 @@ class HomeViewModel @Inject constructor(
                             .filterYoutubeShorts(hideYoutubeShorts)
                         if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
                     }
-                    // Insert Tamil sections at the top of the home page feed sections
+                    // Insert taste/starter sections at the top of the home page feed sections
                     homePage.value = page.copy(
-                        sections = customTamilSections + filteredSections
+                        sections = customTasteSections + filteredSections
                     )
                 }.onFailure { reportException(it) }
             }

@@ -247,13 +247,12 @@ highlightKey: String? = null) {
                 showAudioQualityDialog = false
             },
             title = stringResource(R.string.audio_quality),
-            current = audioQuality,
-            values = AudioQuality.values().filter { com.snuggle.music.constants.LOSSLESS_ENABLED || it != AudioQuality.LOSSLESS },
+            current = if (audioQuality == AudioQuality.LOSSLESS) AudioQuality.SAAVN else audioQuality,
+            values = listOf(AudioQuality.OPUS, AudioQuality.SAAVN),
             valueText = {
                 when (it) {
-                    AudioQuality.OPUS -> "Low (Fastest, saves data - Opus)"
-                    AudioQuality.SAAVN -> "Medium (Optimal, balanced - Opus)"
-                    AudioQuality.LOSSLESS -> "High (mp4a-LATM 320kbps)"
+                    AudioQuality.OPUS -> "Opus"
+                    else -> "320 kbps (mp4a-LATM)"
                 }
             }
         )
@@ -267,13 +266,12 @@ highlightKey: String? = null) {
                 showDownloadQualityDialog = false
             },
             title = stringResource(R.string.download_quality_title),
-            current = downloadQuality,
-            values = com.snuggle.music.constants.DownloadQuality.values().filter { com.snuggle.music.constants.LOSSLESS_ENABLED || it != com.snuggle.music.constants.DownloadQuality.LOSSLESS },
+            current = if (downloadQuality == com.snuggle.music.constants.DownloadQuality.LOSSLESS) com.snuggle.music.constants.DownloadQuality.SAAVN else downloadQuality,
+            values = listOf(com.snuggle.music.constants.DownloadQuality.YOUTUBE, com.snuggle.music.constants.DownloadQuality.SAAVN),
             valueText = {
                 when (it) {
-                    com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "YouTube Music (Standard)"
-                    com.snuggle.music.constants.DownloadQuality.SAAVN -> "YouTube Music (High Bitrate)"
-                    com.snuggle.music.constants.DownloadQuality.LOSSLESS -> "YouTube Music (mp4a-LATM 320kbps)"
+                    com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "Opus"
+                    else -> "320 kbps (mp4a-LATM)"
                 }
             }
         )
@@ -334,9 +332,8 @@ highlightKey: String? = null) {
                     description = {
                         Text(
                             when (audioQuality) {
-                                AudioQuality.OPUS -> "Low (Fastest, saves data - Opus)"
-                                AudioQuality.SAAVN -> "Medium (Optimal, balanced - Opus)"
-                                AudioQuality.LOSSLESS -> "High (mp4a-LATM 320kbps)"
+                                AudioQuality.OPUS -> "Opus"
+                                else -> "320 kbps (mp4a-LATM)"
                             }
                         )
                     },
@@ -372,9 +369,8 @@ highlightKey: String? = null) {
                     description = {
                         Text(
                             when (downloadQuality) {
-                                com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "YouTube Music (Standard)"
-                                com.snuggle.music.constants.DownloadQuality.SAAVN -> "YouTube Music (High Bitrate)"
-                                com.snuggle.music.constants.DownloadQuality.LOSSLESS -> "YouTube Music (mp4a-LATM 320kbps)"
+                                com.snuggle.music.constants.DownloadQuality.YOUTUBE -> "Opus"
+                                else -> "320 kbps (mp4a-LATM)"
                             }
                         )
                     },

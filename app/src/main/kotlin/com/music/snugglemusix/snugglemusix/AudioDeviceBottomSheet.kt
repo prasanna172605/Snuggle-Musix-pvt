@@ -788,12 +788,10 @@ fun AudioQualitySelector(context: Context) {
 
         val options = listOf(
             "Opus",
-            "320 kbps",
-            "Lossless"
+            "320 kbps"
         )
         val selectedIndex = when (audioQuality) {
-            AudioQuality.SAAVN -> 1
-            AudioQuality.LOSSLESS -> 2
+            AudioQuality.SAAVN, AudioQuality.LOSSLESS -> 1
             else -> 0
         }
 
@@ -811,7 +809,6 @@ fun AudioQualitySelector(context: Context) {
                     onCheckedChange = {
                         val newQuality = when (index) {
                             1 -> AudioQuality.SAAVN
-                            2 -> AudioQuality.LOSSLESS
                             else -> AudioQuality.OPUS
                         }
                         onAudioQualityChange(newQuality)
@@ -859,12 +856,10 @@ fun DownloadQualitySelector() {
 
         val options = listOf(
             "Opus",
-            "320 kbps",
-            "Lossless"
+            "320 kbps"
         )
         val selectedIndex = when (downloadQuality) {
-            com.snuggle.music.constants.DownloadQuality.SAAVN -> 1
-            com.snuggle.music.constants.DownloadQuality.LOSSLESS -> 2
+            com.snuggle.music.constants.DownloadQuality.SAAVN, com.snuggle.music.constants.DownloadQuality.LOSSLESS -> 1
             else -> 0
         }
 
@@ -882,7 +877,6 @@ fun DownloadQualitySelector() {
                     onCheckedChange = {
                         val newQuality = when (index) {
                             1 -> com.snuggle.music.constants.DownloadQuality.SAAVN
-                            2 -> com.snuggle.music.constants.DownloadQuality.LOSSLESS
                             else -> com.snuggle.music.constants.DownloadQuality.YOUTUBE
                         }
                         onDownloadQualityChange(newQuality)

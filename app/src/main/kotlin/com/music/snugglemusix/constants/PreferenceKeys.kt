@@ -110,6 +110,14 @@ enum class AudioQuality {
     LOSSLESS,
 }
 
+enum class PlaybackEngine {
+    POTOKEN,
+    BRAVEPIPE,
+    AUTO,
+}
+
+val PlaybackEngineKey = stringPreferencesKey("playbackEngine")
+
 val DownloadQualityKey = stringPreferencesKey("downloadQuality")
 
 enum class DownloadQuality {

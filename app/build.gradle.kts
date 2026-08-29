@@ -33,8 +33,8 @@ android {
         applicationId = "com.snuggle.music"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1006
-        versionName = "1.0.4"
+        versionCode = 2000
+        versionName = "v1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -328,4 +328,10 @@ dependencies {
     
     // ZXing for QR Code scanning and generation
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("com.github.TeamNewPipe:nanojson:c7a6c1c08d16b6d5ecded34758e6415e07be2166")
+    }
 }

@@ -163,15 +163,18 @@ import com.snuggle.music.utils.NetworkConnectivityObserver
 import com.snuggle.music.utils.ScrobbleManager
 import com.snuggle.music.utils.SyncUtils
 import com.snuggle.music.utils.YTPlayerUtils
+import com.snuggle.music.utils.cipher.CipherDeobfuscator
 import com.snuggle.music.utils.dataStore
 import com.snuggle.music.utils.get
 import com.snuggle.music.utils.reportException
-import com.snuggle.music.widget.EchoMusicWidgetManager
+import com.snuggle.music.widget.SnuggleMusixWidgetManager
 import com.snuggle.music.widget.MusicWidgetReceiver
+import com.snuggle.music.widget.TurntableWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import com.snuggle.music.utils.isLocalMediaId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -231,11 +234,12 @@ class MusicService :
     lateinit var eqProfileRepository: EQProfileRepository
 
     @Inject
-    lateinit var widgetManager: EchoMusicWidgetManager
+    lateinit var widgetManager: SnuggleMusixWidgetManager
 
     @Inject
     lateinit var listenTogetherManager: com.snuggle.music.listentogether.ListenTogetherManager
-    
+
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
@@ -859,8 +863,10 @@ class MusicService :
             silenceProcessor.instantModeEnabled = skipSilence && instantSkip
         }
 
+        val mediaSourceFactory = createMediaSourceFactory()
+        timber.log.Timber.tag("PlayerDS").i("Player DataSource Factory class = ${mediaSourceFactory.javaClass.name}")
         val player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(createMediaSourceFactory())
+            .setMediaSourceFactory(mediaSourceFactory)
             .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor))
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
@@ -2146,10 +2152,11 @@ class MusicService :
         Timber.tag(TAG).e("[Media3Error] causeChain=$causeChain")
         Timber.tag(TAG).e("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         
+        val errorDisplay = if (httpCode != null) "HTTP $httpCode" else "${error.errorCodeName} (${error.errorCode})"
         com.snuggle.music.utils.PlaybackLogManager.log(
             com.snuggle.music.utils.PlaybackLogLevel.ERROR,
-            "[Media3Error] HTTP ${httpCode ?: error.errorCode}",
-            "Video: $mediaId | Cause: ${error.cause?.message ?: error.message}"
+            "[Media3Error] $errorDisplay",
+            "Video: $mediaId | Cause: ${causeChain.ifEmpty { error.message ?: "Unknown" }}"
         )
 
         val isFallbackError = error.message?.contains("fallback", ignoreCase = true) == true
@@ -2406,13 +2413,14 @@ class MusicService :
         performAggressiveCacheClear(mediaId)
         Timber.tag(TAG).w("[PlaybackFallback] HTTP 403 on $mediaId: invalidating current client and advancing to next strategy")
 
-        // 2. Mark current client strategy failed so YTPlayerUtils advances down the fallback ladder
+        // 2. Trigger stream rejection refresh on cipher store and force refresh caches
         try {
-            val failedClient = if (currentRetries == 0) "IPADOS" else if (currentRetries == 1) "IOS" else "ANDROID_VR"
-            YTPlayerUtils.markClientFailedForVideo(mediaId, failedClient)
+            serviceScope.launch {
+                CipherDeobfuscator.onStreamRejected()
+            }
             YTPlayerUtils.forceRefreshForVideo(mediaId)
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches")
+            Timber.tag(TAG).e(e, "Failed to handle stream rejection")
         }
 
         if (currentRetries >= 3) {
@@ -2502,6 +2510,23 @@ class MusicService :
                         OkHttpDataSource.Factory(
                             OkHttpClient
                                     .Builder()
+                                    .addInterceptor { chain ->
+                                        val req = chain.request()
+                                        val url = req.url.toString()
+                                        val range = req.header("Range") ?: "none"
+                                        val ua = req.header("User-Agent") ?: "none"
+                                        val itag = req.url.queryParameter("itag") ?: "unknown"
+                                        val cpn = req.url.queryParameter("cpn") ?: "none"
+                                        
+                                        timber.log.Timber.tag("Media3HTTP").i("[HTTP REQ] itag=$itag, range=$range, UA=$ua, cpn=$cpn, host=${req.url.host}")
+                                        
+                                        val response = chain.proceed(req)
+                                        timber.log.Timber.tag("Media3HTTP").i("[HTTP RES] code=${response.code}, itag=$itag, range=$range, len=${response.header("Content-Length")}")
+                                        if (response.code == 403) {
+                                            timber.log.Timber.tag("Media3HTTP").e("[HTTP 403 FORBIDDEN] itag=$itag, range=$range, UA=$ua, host=${req.url.host}")
+                                        }
+                                        response
+                                    }
                                     .dns(object : Dns {
                                         override fun lookup(hostname: String): List<InetAddress> {
                                             val addresses = Dns.SYSTEM.lookup(hostname)
@@ -2645,6 +2670,7 @@ class MusicService :
             createCacheDataSource()
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
+            timber.log.Timber.tag("ResolvingDS").i("[ResolvingDS] ENTER mediaId=$mediaId, uri=${dataSpec.uri}, position=${dataSpec.position}, length=${dataSpec.length}, uriPositionOffset=${dataSpec.uriPositionOffset}")
             if (mediaId.isLocalMediaId()) {
                 val localUri = android.net.Uri.parse(mediaId)
                 try {
@@ -2728,13 +2754,9 @@ class MusicService :
                 val knownDuration = dbSong?.song?.duration?.let { if (it > 0) it * 1000L else null }
 
                 YTPlayerUtils.playerResponseForPlayback(
-                    mediaId,
+                    videoId = mediaId,
                     audioQuality = lockedQuality,
                     connectivityManager = connectivityManager,
-                    context = this@MusicService,
-                    knownArtist = knownArtist,
-                    knownTitle = knownTitle,
-                    knownDurationMs = knownDuration
                 )
             }.getOrElse { throwable ->
                 when (throwable) {
@@ -2757,7 +2779,7 @@ class MusicService :
                     }
 
                     else -> throw PlaybackException(
-                        getString(R.string.error_unknown),
+                        throwable.message ?: getString(R.string.error_unknown),
                         throwable,
                         PlaybackException.ERROR_CODE_REMOTE_ERROR
                     )
@@ -2827,7 +2849,10 @@ class MusicService :
                 songUrlCache["${mediaId}_${lockedQuality.name}"] =
                     streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
                 
-                return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
+                val outDataSpec = dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, chunkLength)
+                Timber.tag("YT Resolve").i("[YT Resolve] Media3 started: $mediaId (host=${outDataSpec.uri.host})")
+                com.snuggle.music.utils.PlaybackLogManager.log(com.snuggle.music.utils.PlaybackLogLevel.INFO, "[YT Resolve] Media3 started", "Video: $mediaId")
+                return@Factory outDataSpec
             }
         }
     }
@@ -3049,7 +3074,8 @@ class MusicService :
                 player.seekToPrevious()
                 updateWidgetUI(player.isPlaying)
             }
-            MusicWidgetReceiver.ACTION_UPDATE_WIDGET -> {
+            MusicWidgetReceiver.ACTION_UPDATE_WIDGET,
+            TurntableWidgetReceiver.ACTION_UPDATE_TURNTABLE_WIDGET -> {
                 updateWidgetUI(player.isPlaying)
             }
         }
@@ -3386,10 +3412,6 @@ class MusicService :
                             videoId = mediaId,
                             audioQuality = audioQuality,
                             connectivityManager = connectivityManager,
-                            context = this@MusicService,
-                            knownArtist = knownArtist,
-                            knownTitle = dbSong?.song?.title,
-                            knownDurationMs = dbSong?.song?.duration?.let { if (it > 0) it * 1000L else null }
                         )
 
                         playbackData.getOrNull()?.streamUrl?.let { streamUrl ->

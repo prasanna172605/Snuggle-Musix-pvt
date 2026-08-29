@@ -58,6 +58,7 @@ class App : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
 
         // Replaced DeviceRouter with EndpointManager for resilient API routing
         // Removed destructive database deletion to preserve user data
@@ -127,6 +128,7 @@ class App : Application(), SingletonImageLoader.Factory {
 
         YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
         YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
+        com.snuggle.music.utils.YTPlayerUtils.playbackEngine = settings[PlaybackEngineKey]?.toEnum(defaultValue = PlaybackEngine.AUTO) ?: PlaybackEngine.AUTO
 
         val channel = NotificationChannel(
             "updates",
@@ -215,6 +217,15 @@ class App : Application(), SingletonImageLoader.Factory {
                     YouTube.ipVersion = ipVersion?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
                 }
         }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[PlaybackEngineKey] }
+                .distinctUntilChanged()
+                .collect { engine ->
+                    com.snuggle.music.utils.YTPlayerUtils.playbackEngine = engine?.toEnum(defaultValue = PlaybackEngine.AUTO) ?: PlaybackEngine.AUTO
+                }
+        }
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
@@ -244,6 +255,9 @@ class App : Application(), SingletonImageLoader.Factory {
     }
 
     companion object {
+        lateinit var instance: App
+            private set
+
         suspend fun forgetAccount(context: Context) {
             Timber.d("forgetAccount: Starting logout process")
 

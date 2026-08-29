@@ -24,8 +24,6 @@ kotlin {
 
 dependencies {
     implementation(libs.timber)
-    implementation(libs.pipepipe.extractor)
-    implementation(libs.brave.extractor)
     implementation(libs.ksoup.html)
     implementation(libs.ksoup.entities)
 
@@ -35,6 +33,15 @@ dependencies {
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
+
+    implementation(libs.newpipeextractor) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+    }
+    implementation(libs.pipepipe.extractor) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+    }
+    implementation(libs.nanojson)
+
     testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)
@@ -42,4 +49,7 @@ dependencies {
 
 configurations.all {
     exclude(group = "com.google.protobuf", module = "protobuf-java")
+    resolutionStrategy {
+        force("com.github.TeamNewPipe:nanojson:c7a6c1c08d16b6d5ecded34758e6415e07be2166")
+    }
 }

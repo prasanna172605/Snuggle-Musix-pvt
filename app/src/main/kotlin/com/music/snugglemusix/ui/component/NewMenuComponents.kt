@@ -40,10 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -208,53 +205,23 @@ fun NewActionGrid(
                     val shape = shapeForIndex(index, rowIndexedActions.size)
                     val interactionSource = remember { MutableInteractionSource() }
 
-                    // Liquid Glass surface
-                    val glassModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        Modifier
-                            .graphicsLayer {
-                                renderEffect = android.graphics.RenderEffect.createBlurEffect(
-                                    22f, 22f, android.graphics.Shader.TileMode.CLAMP
-                                ).asComposeRenderEffect()
-                                clip = true
-                                this.shape = shape
-                            }
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.White.copy(alpha = 0.13f),
-                                        Color.White.copy(alpha = 0.04f)
-                                    )
-                                ),
-                                shape = shape
-                            )
-                            .border(
-                                width = 0.7.dp,
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.White.copy(alpha = 0.32f),
-                                        Color.White.copy(alpha = 0.07f)
-                                    )
-                                ),
-                                shape = shape
-                            )
-                    } else {
-                        Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
-                                shape = shape
-                            )
-                            .border(
-                                width = 0.7.dp,
-                                color = Color.White.copy(alpha = 0.18f),
-                                shape = shape
-                            )
-                    }
+                    // Surface card styling
+                    val surfaceModifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.85f),
+                            shape = shape
+                        )
+                        .border(
+                            width = 0.7.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                            shape = shape
+                        )
 
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .clip(shape)
-                            .then(glassModifier)
+                            .then(surfaceModifier)
                             .then(
                                 if (!action.enabled) Modifier.alpha(0.45f) else Modifier
                             )

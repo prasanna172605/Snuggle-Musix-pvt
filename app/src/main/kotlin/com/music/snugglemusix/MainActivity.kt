@@ -419,14 +419,15 @@ class MainActivity : ComponentActivity() {
                         Log.d("UpdateCheck", "Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
                         saveUpdateAvailableState(context, isAvailable)
                         
-                        if (isAvailable && getUpdateNotificationsSetting(context)) {
-                            Log.d("UpdateCheck", "Posting update notification for $latestVersion")
-                            UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
+                        if (isAvailable) {
+                            if (getUpdateNotificationsSetting(context)) {
+                                Log.d("UpdateCheck", "Posting update notification for $latestVersion")
+                                UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
+                            }
                         }
                     },
                     onError = {
                         Log.e("UpdateCheck", "Startup check failed")
-                        
                     }
                 )
             }
@@ -1245,6 +1246,47 @@ class MainActivity : ComponentActivity() {
                             isSuccess = ringtoneUiState.isSuccess,
                             onDismiss = { ringtoneViewModel.dismissProgress() },
                             onOpenSettings = { ringtoneViewModel.openRingtoneSettings(this@MainActivity) }
+                        )
+                    }
+
+                    var showStrictUpdateDialog by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) {
+                        if (com.snuggle.music.snugglemusix.updater.getUpdateAvailableState(this@MainActivity)) {
+                            showStrictUpdateDialog = true
+                        }
+                    }
+
+                    if (showStrictUpdateDialog && currentRoute != "update") {
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { /* strict - mandatory */ },
+                            properties = androidx.compose.ui.window.DialogProperties(
+                                dismissOnBackPress = false,
+                                dismissOnClickOutside = false
+                            ),
+                            title = {
+                                Text(
+                                    text = "Update Required",
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            },
+                            text = {
+                                Text(
+                                    text = "A new version of Snuggle Musix is available with important fixes and enhancements. Please update now to continue.",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            confirmButton = {
+                                androidx.compose.material3.Button(
+                                    onClick = {
+                                        navController.navigate("update") {
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                ) {
+                                    Text("Update Now")
+                                }
+                            }
                         )
                     }
                 }
