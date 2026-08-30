@@ -100,11 +100,21 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="https" />
-                <data android:host="echomusic-listen-together.onrender.com" />
+                <data android:host="prasanna0705.netlify.app" />
+                <data android:pathPrefix="/Snuggle-Musix/listen" />
                 <data android:pathPrefix="/listen" />
             </intent-filter>
 
             <!-- Custom scheme for direct opens from browser (works in ALL browsers) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="snugglemusix" />
+                <data android:host="listen" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
